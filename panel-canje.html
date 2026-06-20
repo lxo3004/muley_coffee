@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de canje · Café Premiado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --espresso:#2E1B12;
+    --espresso-soft:#4A2F20;
+    --cream:#F7EEE0;
+    --cream-deep:#EDE0C8;
+    --caramel:#C1812F;
+    --caramel-deep:#9C5F1F;
+    --sage:#6E8B6E;
+    --rust:#B0503B;
+    --paper:#FFFCF6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:var(--cream);
+    font-family:'Inter',-apple-system,sans-serif;
+    color:var(--espresso);
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:420px;margin:0 auto;}
+  h1{ font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:1.4rem; margin:0 0 4px; }
+  .eyebrow{
+    font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--caramel-deep); font-weight:600; margin:0 0 14px;
+  }
+  .card{ background:var(--paper); border:1px solid var(--cream-deep); border-radius:20px; padding:22px; margin-bottom:18px; }
+  input{
+    width:100%; font-family:'Inter',sans-serif; font-size:1rem; padding:12px 14px;
+    border-radius:12px; border:1.5px solid var(--cream-deep); background:var(--cream);
+    color:var(--espresso); margin-bottom:10px;
+  }
+  input:focus{outline:2px solid var(--caramel); border-color:var(--caramel);}
+  button{
+    width:100%; border:none; font-family:'Inter',sans-serif; font-weight:600; font-size:0.95rem;
+    padding:12px; border-radius:12px; cursor:pointer; background:var(--caramel); color:var(--paper);
+  }
+  button:active{background:var(--caramel-deep);}
+  .result{margin-top:14px; font-size:0.92rem; line-height:1.5;}
+  .badge{
+    display:inline-block; font-size:0.7rem; font-weight:700; letter-spacing:0.04em;
+    padding:3px 10px; border-radius:999px; text-transform:uppercase;
+  }
+  .badge.ok{background:rgba(110,139,110,0.15); color:var(--sage);}
+  .badge.used{background:rgba(176,80,59,0.12); color:var(--rust);}
+  .stats{ display:flex; justify-content:space-between; font-size:0.85rem; color:var(--espresso-soft); }
+  .stats strong{display:block; font-size:1.4rem; color:var(--espresso); font-family:'Fraunces',serif;}
+  .list-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:9px 0; border-bottom:1px solid var(--cream-deep); font-size:0.85rem;
+  }
+  .list-item:last-child{border-bottom:none;}
+  .mono{font-family:monospace; font-weight:600;}
+  .pin-screen{text-align:center; padding-top:40px;}
+  .toggle-list{
+    background:none; border:none; color:var(--caramel-deep);
+    font-size:0.85rem; text-decoration:underline; padding:0; width:auto; margin-top:6px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <div class="pin-screen" id="pinScreen">
+    <p class="eyebrow">Muley Coffee</p>
+    <h1>Panel de canje</h1>
+    <p style="color:var(--espresso-soft); font-size:0.9rem;">Ingresa el PIN del local para continuar</p>
+    <input type="password" inputmode="numeric" id="pinInput" placeholder="PIN" maxlength="6">
+    <button id="pinBtn">Entrar</button>
+    <p id="pinError" style="color:var(--rust); font-size:0.85rem; display:none;">PIN incorrecto</p>
+  </div>
+
+  <div id="mainScreen" style="display:none;">
+    <p class="eyebrow">Muley Coffee</p>
+    <h1>Panel de canje</h1>
+
+    <div class="card">
+      <div class="stats">
+        <div>Visitas totales<strong id="totalVisits">—</strong></div>
+        <div>Premios entregados<strong id="totalRedeemed">—</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label for="codeInput" style="font-size:0.85rem; color:var(--espresso-soft);">Código del cliente</label>
+      <input type="text" id="codeInput" placeholder="CAFE-200-7K3F" autocapitalize="characters">
+      <button id="checkBtn">Verificar código</button>
+      <div class="result" id="result"></div>
+    </div>
+
+    <div class="card">
+      <button class="toggle-list" id="toggleListBtn">Ver todos los códigos ▾</button>
+      <div id="listWrap" style="display:none; margin-top:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======== CONFIGURACIÓN — edita esto ======== */
+const STAFF_PIN = "2304";
+const CONFIG = {
+  binId: "6a35da17f5f4af5e2912180b",
+  masterKey: "$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW",
+};
+/* ============================================== */
+
+const API = "https://api.jsonbin.io/v3/b/" + CONFIG.binId;
+
+async function getRecord(){
+  const res = await fetch(API + "/latest", {
+    headers:{ 'X-Master-Key': CONFIG.masterKey, 'X-Bin-Meta': 'false' }
+  });
+  if(!res.ok) throw new Error('read failed');
+  const data = await res.json();
+  if(typeof data.count !== 'number') data.count = 0;
+  if(!data.winners || typeof data.winners !== 'object') data.winners = {};
+  return data;
+}
+
+async function putRecord(record){
+  const res = await fetch(API, {
+    method:'PUT',
+    headers:{ 'Content-Type':'application/json', 'X-Master-Key': CONFIG.masterKey },
+    body: JSON.stringify(record)
+  });
+  if(!res.ok) throw new Error('write failed');
+}
+
+const pinScreen = document.getElementById('pinScreen');
+const mainScreen = document.getElementById('mainScreen');
+const pinInput = document.getElementById('pinInput');
+const pinBtn = document.getElementById('pinBtn');
+const pinError = document.getElementById('pinError');
+
+pinBtn.addEventListener('click', ()=>{
+  if(pinInput.value === STAFF_PIN){
+    pinScreen.style.display = 'none';
+    mainScreen.style.display = 'block';
+    loadStats();
+  }else{
+    pinError.style.display = 'block';
+  }
+});
+pinInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') pinBtn.click(); });
+
+async function loadStats(){
+  try{
+    const record = await getRecord();
+    document.getElementById('totalVisits').textContent = String(record.count);
+    const winners = Object.entries(record.winners).map(([code,w])=>({code, ...w}));
+    const redeemed = winners.filter(w=>w.redeemed).length;
+    document.getElementById('totalRedeemed').textContent = String(redeemed);
+    winners.sort((a,b)=>b.visitNumber - a.visitNumber);
+    renderList(winners);
+  }catch(e){
+    document.getElementById('totalVisits').textContent = '—';
+    document.getElementById('totalRedeemed').textContent = '—';
+  }
+}
+
+function renderList(winners){
+  const wrap = document.getElementById('listWrap');
+  if(winners.length === 0){
+    wrap.innerHTML = '<p style="font-size:0.85rem; color:var(--espresso-soft);">Todavía no hay ganadores.</p>';
+    return;
+  }
+  wrap.innerHTML = winners.map(w=>`
+    <div class="list-item">
+      <span class="mono">${w.code}</span>
+      <span class="badge ${w.redeemed?'used':'ok'}">${w.redeemed?'Canjeado':'Pendiente'}</span>
+    </div>
+  `).join('');
+}
+
+document.getElementById('toggleListBtn').addEventListener('click', (e)=>{
+  const wrap = document.getElementById('listWrap');
+  const isHidden = wrap.style.display === 'none';
+  wrap.style.display = isHidden ? 'block' : 'none';
+  e.target.textContent = isHidden ? 'Ocultar códigos ▴' : 'Ver todos los códigos ▾';
+});
+
+document.getElementById('checkBtn').addEventListener('click', async ()=>{
+  const raw = document.getElementById('codeInput').value.trim().toUpperCase();
+  const result = document.getElementById('result');
+  if(!raw){ result.innerHTML = ''; return; }
+  result.innerHTML = 'Buscando…';
+  try{
+    const record = await getRecord();
+    const data = record.winners[raw];
+    if(!data){
+      result.innerHTML = '<span class="badge used">Código inválido</span>';
+      return;
+    }
+    if(data.redeemed){
+      const date = new Date(data.redeemedAt).toLocaleString('es-CL');
+      result.innerHTML = `<span class="badge used">Ya canjeado</span><p>Canjeado el ${date}</p>`;
+      return;
+    }
+    const wonDate = new Date(data.ts).toLocaleString('es-CL');
+    result.innerHTML = `
+      <span class="badge ok">Válido — visita N.º ${data.visitNumber}</span>
+      <p>Ganado el ${wonDate}</p>
+      <button id="redeemBtn">Marcar como canjeado</button>
+    `;
+    document.getElementById('redeemBtn').addEventListener('click', async ()=>{
+      try{
+        const fresh = await getRecord();
+        if(!fresh.winners[raw] || fresh.winners[raw].redeemed){
+          result.innerHTML = '<span class="badge used">Este código ya fue canjeado</span>';
+          loadStats();
+          return;
+        }
+        fresh.winners[raw].redeemed = true;
+        fresh.winners[raw].redeemedAt = Date.now();
+        await putRecord(fresh);
+        result.innerHTML = '<span class="badge used">Canjeado correctamente ✓</span>';
+        loadStats();
+      }catch(e){
+        result.innerHTML += '<p style="color:var(--rust);">Error al guardar, intenta de nuevo.</p>';
+      }
+    });
+  }catch(e){
+    result.innerHTML = '<span class="badge used">No se pudo verificar, intenta de nuevo</span>';
+  }
+});
+</script>
+</body>
+</html>
