@@ -122,6 +122,7 @@
 const CONFIG = {
   cafeName: "Muley Coffee",
   premioCada: 100,
+  cooldownMinutes: 30,
   ntfyTopic: "cafe-retiro-luis-7gx2k9",
   binId: "6a35da17f5f4af5e2912180b",
   masterKey: "$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW",
@@ -190,6 +191,14 @@ function renderWinner(count, code){
   }
 }
 
+function renderCooldown(){
+  app.innerHTML = `
+    <p class="eyebrow">${CONFIG.cafeName}</p>
+    <h1>Ya registramos tu visita ☕</h1>
+    <p class="sub">Vuelve a escanear el código la próxima vez que nos visites para seguir participando.</p>
+  `;
+}
+
 function renderError(){
   app.innerHTML = `
     <p class="eyebrow">${CONFIG.cafeName}</p>
@@ -233,7 +242,21 @@ async function putRecord(record){
   if(!res.ok) throw new Error('write failed');
 }
 
+const COOLDOWN_KEY = 'muley-coffee-last-visit';
+
 async function main(){
+  // evitar que el mismo navegador/celular sume varias visitas seguidas
+  try{
+    const last = localStorage.getItem(COOLDOWN_KEY);
+    if(last){
+      const elapsedMs = Date.now() - parseInt(last, 10);
+      if(!isNaN(elapsedMs) && elapsedMs < CONFIG.cooldownMinutes * 60 * 1000){
+        renderCooldown();
+        return;
+      }
+    }
+  }catch(e){ /* si el navegador bloquea localStorage, seguimos sin cooldown */ }
+
   let record, count;
   try{
     record = await getRecord();
@@ -243,6 +266,8 @@ async function main(){
     renderError();
     return;
   }
+
+  try{ localStorage.setItem(COOLDOWN_KEY, String(Date.now())); }catch(e){}
 
   const isWinner = count % CONFIG.premioCada === 0;
   let code = null;
