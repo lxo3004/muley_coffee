@@ -230,7 +230,29 @@ async function getRecord(){
   const data = await res.json();
   if(typeof data.count !== 'number') data.count = 0;
   if(!data.winners || typeof data.winners !== 'object') data.winners = {};
+  if(!Array.isArray(data.visits)) data.visits = [];
   return data;
+}
+
+function getDevice(){
+  const ua = navigator.userAgent || '';
+  if(/android/i.test(ua)) return 'Android';
+  if(/iphone|ipad|ipod/i.test(ua)) return 'iPhone';
+  return 'Otro';
+}
+
+async function getCity(){
+  try{
+    const res = await fetch('https://ipapi.co/json/');
+    if(!res.ok) return 'Desconocida';
+    const geo = await res.json();
+    if(geo && geo.city){
+      return geo.region ? `${geo.city}, ${geo.region}` : geo.city;
+    }
+    return 'Desconocida';
+  }catch(e){
+    return 'Desconocida';
+  }
 }
 
 async function putRecord(record){
@@ -268,6 +290,10 @@ async function main(){
   }
 
   try{ localStorage.setItem(COOLDOWN_KEY, String(Date.now())); }catch(e){}
+
+  const city = await getCity();
+  record.visits.push({ ts: Date.now(), city, device: getDevice() });
+  if(record.visits.length > 2000) record.visits = record.visits.slice(-2000);
 
   const isWinner = count % CONFIG.premioCada === 0;
   let code = null;

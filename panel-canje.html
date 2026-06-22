@@ -100,6 +100,11 @@
       <button class="toggle-list" id="toggleListBtn">Ver todos los códigos ▾</button>
       <div id="listWrap" style="display:none; margin-top:10px;"></div>
     </div>
+
+    <div class="card">
+      <button class="toggle-list" id="toggleVisitsBtn">Ver actividad reciente ▾</button>
+      <div id="visitsWrap" style="display:none; margin-top:10px;"></div>
+    </div>
   </div>
 </div>
 
@@ -122,6 +127,7 @@ async function getRecord(){
   const data = await res.json();
   if(typeof data.count !== 'number') data.count = 0;
   if(!data.winners || typeof data.winners !== 'object') data.winners = {};
+  if(!Array.isArray(data.visits)) data.visits = [];
   return data;
 }
 
@@ -160,11 +166,44 @@ async function loadStats(){
     document.getElementById('totalRedeemed').textContent = String(redeemed);
     winners.sort((a,b)=>b.visitNumber - a.visitNumber);
     renderList(winners);
+    renderVisits(record.visits);
   }catch(e){
     document.getElementById('totalVisits').textContent = '—';
     document.getElementById('totalRedeemed').textContent = '—';
   }
 }
+
+function renderVisits(visits){
+  const wrap = document.getElementById('visitsWrap');
+  if(!visits || visits.length === 0){
+    wrap.innerHTML = '<p style="font-size:0.85rem; color:var(--espresso-soft);">Todavía no hay datos.</p>';
+    return;
+  }
+  const cityCounts = {};
+  visits.forEach(v=>{ const c = v.city || 'Desconocida'; cityCounts[c] = (cityCounts[c]||0)+1; });
+  const topCities = Object.entries(cityCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const recent = visits.slice(-15).reverse();
+  wrap.innerHTML = `
+    <p style="font-size:0.78rem; color:var(--espresso-soft); margin:0 0 6px;">Ciudades más frecuentes</p>
+    ${topCities.map(([city,n])=>`
+      <div class="list-item"><span>${city}</span><span class="mono">${n}</span></div>
+    `).join('')}
+    <p style="font-size:0.78rem; color:var(--espresso-soft); margin:16px 0 6px;">Últimas visitas</p>
+    ${recent.map(v=>`
+      <div class="list-item">
+        <span>${new Date(v.ts).toLocaleString('es-CL')}</span>
+        <span class="mono" style="font-size:0.75rem;">${v.city || '—'}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+document.getElementById('toggleVisitsBtn').addEventListener('click', (e)=>{
+  const wrap = document.getElementById('visitsWrap');
+  const isHidden = wrap.style.display === 'none';
+  wrap.style.display = isHidden ? 'block' : 'none';
+  e.target.textContent = isHidden ? 'Ocultar actividad ▴' : 'Ver actividad reciente ▾';
+});
 
 function renderList(winners){
   const wrap = document.getElementById('listWrap');
