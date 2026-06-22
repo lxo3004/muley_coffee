@@ -63,33 +63,35 @@
     line-height:1.5;
     margin:6px 0 0;
   }
-  .cup-wrap{ position:relative; width:120px; height:140px; margin:18px auto 8px; }
-  .cup-outer{
-    position:absolute; inset:0;
-    clip-path:polygon(18% 0%, 82% 0%, 70% 100%, 30% 100%);
-    background:var(--cream-deep);
-    overflow:hidden;
-  }
-  .cup-sleeve{ position:absolute; left:0;right:0; top:38%; height:26%; background:rgba(46,27,18,0.06); }
-  .cup-fill{
-    position:absolute; left:0;right:0; bottom:0; height:0%;
-    background:linear-gradient(180deg, var(--caramel) 0%, var(--caramel-deep) 100%);
-    transition:height 1.1s cubic-bezier(.22,1,.36,1);
-  }
-  .cup-lid{ position:absolute; top:-6px;left:14%;right:14%; height:10px; border-radius:6px; background:var(--espresso-soft); }
+  .cup-wrap{ position:relative; width:160px; height:180px; margin:18px auto 4px; }
   .steam{
-    position:absolute; width:5px;height:24px; top:-26px;
+    position:absolute; width:5px; height:28px;
     background:rgba(193,129,47,0.35); border-radius:4px; opacity:0;
     animation:rise 2.4s ease-in-out infinite;
   }
-  .steam.s1{left:38%; animation-delay:0s;}
-  .steam.s2{left:52%; animation-delay:0.6s;}
-  .steam.s3{left:46%; animation-delay:1.2s;}
+  .steam.s1{left:56px; top:-28px; animation-delay:0s;}
+  .steam.s2{left:76px; top:-28px; animation-delay:0.6s;}
+  .steam.s3{left:96px; top:-28px; animation-delay:1.2s;}
   @keyframes rise{
     0%{opacity:0; transform:translateY(0) scaleY(0.7);}
     30%{opacity:0.6;}
-    100%{opacity:0; transform:translateY(-18px) scaleY(1.1);}
+    100%{opacity:0; transform:translateY(-20px) scaleY(1.1);}
   }
+  .mug-pct{
+    position:absolute;
+    top:50%; left:0; right:0;
+    transform:translateY(-50%);
+    font-family:'Fraunces',Georgia,serif;
+    font-size:1.1rem;
+    font-weight:600;
+    color:var(--paper);
+    text-align:center;
+    pointer-events:none;
+    text-shadow:0 1px 3px rgba(46,27,18,0.4);
+    opacity:0;
+    transition:opacity 0.5s ease 0.8s;
+  }
+  .mug-pct.visible{ opacity:1; }
   .progress-label{ font-size:0.85rem; color:var(--espresso-soft); margin-top:14px; }
   .progress-label strong{color:var(--caramel-deep);}
   .contact{
@@ -139,8 +141,8 @@
 /* ======== CONFIGURACIÓN — edita estos valores ======== */
 const CONFIG = {
   cafeName: "Muley Coffee",
-  premioCada: 30,
-  cooldownMinutes: 0,
+  premioCada: 50,
+  cooldownMinutes: 30,
   ntfyTopic: "cafe-retiro-luis-7gx2k9",
   binId: "6a35da17f5f4af5e2912180b",
   masterKey: "$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW",
@@ -150,21 +152,92 @@ const CONFIG = {
 const API = "https://api.jsonbin.io/v3/b/" + CONFIG.binId;
 const app = document.getElementById('app');
 
-function cupHTML(fillPercent, winner){
+function cupHTML(fillPercent, winner, label){
+  const pct = Math.max(0, Math.min(100, fillPercent));
+  // mug body: fills from bottom. clipRect y goes from 130 (empty) to 20 (full) over 110px
+  const fillY = 130 - (pct / 100) * 110;
   return `
-    <div class="cup-wrap">
-      <div class="cup-lid"></div>
-      <div class="cup-outer">
-        <div class="cup-sleeve"></div>
-        <div class="cup-fill" id="fill" style="height:0%"></div>
-      </div>
+    <div class="cup-wrap" style="position:relative;width:160px;height:180px;margin:18px auto 4px;">
       ${winner ? `<div class="steam s1"></div><div class="steam s2"></div><div class="steam s3"></div>` : ``}
+      <svg viewBox="0 0 160 180" xmlns="http://www.w3.org/2000/svg" width="160" height="180">
+        <defs>
+          <clipPath id="mugClip">
+            <!-- mug body shape -->
+            <path d="M28,20 Q26,18 26,16 L26,10 Q26,6 30,6 L110,6 Q114,6 114,10 L114,16 Q114,18 112,20 L108,135 Q107,142 100,144 L40,144 Q33,142 32,135 Z"/>
+          </clipPath>
+          <clipPath id="fillClip">
+            <rect id="fillRect" x="26" y="130" width="90" height="110"/>
+          </clipPath>
+          <linearGradient id="coffeeGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#C1812F"/>
+            <stop offset="100%" stop-color="#7A4010"/>
+          </linearGradient>
+          <linearGradient id="mugGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#EDE0C8"/>
+            <stop offset="40%" stop-color="#F7EEE0"/>
+            <stop offset="100%" stop-color="#D4C4AA"/>
+          </linearGradient>
+        </defs>
+
+        <!-- saucer -->
+        <ellipse cx="70" cy="158" rx="52" ry="8" fill="#D4C4AA"/>
+        <ellipse cx="70" cy="155" rx="52" ry="8" fill="#EDE0C8"/>
+        <ellipse cx="70" cy="153" rx="40" ry="5" fill="#D4C4AA" opacity="0.5"/>
+
+        <!-- mug body background -->
+        <path d="M28,20 Q26,18 26,16 L26,10 Q26,6 30,6 L110,6 Q114,6 114,10 L114,16 Q114,18 112,20 L108,135 Q107,142 100,144 L40,144 Q33,142 32,135 Z" fill="url(#mugGrad)"/>
+
+        <!-- coffee fill (clipped to mug shape) -->
+        <g clip-path="url(#mugClip)">
+          <rect id="coffeeFill" x="26" y="130" width="90" height="110"
+            fill="url(#coffeeGrad)"
+            style="transform:translateY(0);transition:transform 1.2s cubic-bezier(.22,1,.36,1)"/>
+        </g>
+
+        <!-- mug rim highlight -->
+        <path d="M28,20 L112,20" stroke="#C8B89A" stroke-width="1.5" fill="none" opacity="0.6"/>
+
+        <!-- mug body outline -->
+        <path d="M28,20 Q26,18 26,16 L26,10 Q26,6 30,6 L110,6 Q114,6 114,10 L114,16 Q114,18 112,20 L108,135 Q107,142 100,144 L40,144 Q33,142 32,135 Z"
+          fill="none" stroke="#C8B89A" stroke-width="1.5"/>
+
+        <!-- handle -->
+        <path d="M114,40 Q148,40 148,75 Q148,110 114,110"
+          fill="none" stroke="#D4C4AA" stroke-width="11" stroke-linecap="round"/>
+        <path d="M114,40 Q142,40 142,75 Q142,110 114,110"
+          fill="none" stroke="#EDE0C8" stroke-width="7" stroke-linecap="round"/>
+
+        <!-- foam / crema on top when full -->
+        ${winner ? `<ellipse cx="70" cy="20" rx="40" ry="6" fill="#F5E6CC" opacity="0.9"/>
+        <ellipse cx="58" cy="19" rx="10" ry="4" fill="#FFFCF6" opacity="0.5"/>
+        <ellipse cx="82" cy="21" rx="8" ry="3" fill="#FFFCF6" opacity="0.4"/>` : ``}
+
+        <!-- percentage text inside mug -->
+        <text id="pctText" x="70" y="88" text-anchor="middle" dominant-baseline="middle"
+          font-family="'Fraunces',Georgia,serif" font-size="18" font-weight="600"
+          fill="#FFFCF6" opacity="0"
+          style="text-shadow:0 1px 3px rgba(46,27,18,0.5);">
+          ${label}
+        </text>
+      </svg>
     </div>
     <script>
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        const f = document.getElementById('fill');
-        if(f) f.style.height = '${fillPercent}%';
-      }));
+      (function(){
+        // animate fill upward
+        const fill = document.getElementById('coffeeFill');
+        const txt  = document.getElementById('pctText');
+        const targetY = ${fillY};
+        const startY  = 130;
+        const shift   = startY - targetY;
+        if(fill){
+          requestAnimationFrame(()=>requestAnimationFrame(()=>{
+            fill.style.transform = 'translateY(-' + shift + 'px)';
+          }));
+        }
+        if(txt && ${pct} > 8){
+          setTimeout(()=>{ txt.style.opacity = '1'; txt.style.transition = 'opacity 0.5s ease'; }, 900);
+        }
+      })();
     <\/script>
   `;
 }
@@ -172,10 +245,12 @@ function cupHTML(fillPercent, winner){
 function renderParticipant(count){
   const mod = count % CONFIG.premioCada;
   const remaining = CONFIG.premioCada - mod;
+  const fillPct = (mod / CONFIG.premioCada) * 100;
+  const label = remaining === 1 ? '¡1 más!' : `faltan ${remaining}`;
   app.innerHTML = `
     <p class="eyebrow">${CONFIG.cafeName}</p>
     <h1>¡Gracias por tu visita!</h1>
-    ${cupHTML(mod, false)}
+    ${cupHTML(fillPct, false, label)}
     <p class="progress-label">Eres la visita N.º <strong>${count}</strong></p>
     <p class="progress-label">Faltan <strong>${remaining}</strong> visitas para el próximo café gratis ☕</p>
     <p class="instructions">Vuelve a escanear el código en tu próxima visita para seguir participando.</p>
@@ -192,7 +267,7 @@ function renderWinner(count, code){
   app.innerHTML = `
     <p class="eyebrow">${CONFIG.cafeName}</p>
     <h1>¡Ganaste un café! 🎉</h1>
-    ${cupHTML(100, true)}
+    ${cupHTML(100, true, '¡Ganaste!')}
     <p class="progress-label">Fuiste la visita N.º <strong>${count}</strong></p>
     <div class="code-box">
       <div class="code" id="codeText">${code}</div>
