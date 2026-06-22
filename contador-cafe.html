@@ -92,6 +92,24 @@
   }
   .progress-label{ font-size:0.85rem; color:var(--espresso-soft); margin-top:14px; }
   .progress-label strong{color:var(--caramel-deep);}
+  .contact{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px solid var(--cream-deep);
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .contact a{
+    font-size:0.82rem;
+    color:var(--espresso-soft);
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .contact a:hover{ color:var(--caramel-deep); }
   .code-box{
     margin:20px 0 6px; background:var(--cream);
     border:1.5px dashed var(--caramel); border-radius:14px; padding:16px;
@@ -121,8 +139,8 @@
 /* ======== CONFIGURACIÓN — edita estos valores ======== */
 const CONFIG = {
   cafeName: "Muley Coffee",
-  premioCada: 30,
-  cooldownMinutes: 0,
+  premioCada: 50,
+  cooldownMinutes: 30,
   ntfyTopic: "cafe-retiro-luis-7gx2k9",
   binId: "6a35da17f5f4af5e2912180b",
   masterKey: "$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW",
@@ -161,6 +179,11 @@ function renderParticipant(count){
     <p class="progress-label">Eres la visita N.º <strong>${count}</strong></p>
     <p class="progress-label">Faltan <strong>${remaining}</strong> visitas para el próximo café gratis ☕</p>
     <p class="instructions">Vuelve a escanear el código en tu próxima visita para seguir participando.</p>
+    <div class="contact">
+      <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
+      <a href="https://maps.google.com/?q=Avda.+Errazuriz+620,+Retiro" target="_blank">📍 Avda. Errazuriz 620</a>
+      <a href="tel:+56944572336">📞 +569 4457 2336</a>
+    </div>
     <p class="footer-note">${CONFIG.cafeName} · promoción de visitas</p>
   `;
 }
@@ -177,6 +200,11 @@ function renderWinner(count, code){
       <button class="copy" id="copyBtn">Copiar código</button>
     </div>
     <p class="instructions">Muestra este código en caja para canjear tu café gratis.</p>
+    <div class="contact">
+      <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
+      <a href="https://maps.google.com/?q=Avda.+Errazuriz+620,+Retiro" target="_blank">📍 Avda. Errazuriz 620</a>
+      <a href="tel:+56944572336">📞 +569 4457 2336</a>
+    </div>
     <p class="footer-note">${CONFIG.cafeName} · promoción de visitas</p>
   `;
   const btn = document.getElementById('copyBtn');
@@ -196,6 +224,11 @@ function renderCooldown(){
     <p class="eyebrow">${CONFIG.cafeName}</p>
     <h1>Ya registramos tu visita ☕</h1>
     <p class="sub">Vuelve a escanear el código la próxima vez que nos visites para seguir participando.</p>
+    <div class="contact">
+      <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
+      <a href="https://maps.google.com/?q=Avda.+Errazuriz+620,+Retiro" target="_blank">📍 Avda. Errazuriz 620</a>
+      <a href="tel:+56944572336">📞 +569 4457 2336</a>
+    </div>
   `;
 }
 
