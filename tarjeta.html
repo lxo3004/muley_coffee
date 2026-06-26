@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mi Tarjeta · Muley Coffee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --espresso:#2E1B12; --espresso-soft:#4A2F20;
+    --cream:#F7EEE0; --cream-deep:#EDE0C8;
+    --caramel:#C1812F; --caramel-deep:#9C5F1F;
+    --sage:#6E8B6E; --paper:#FFFCF6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 15% 20%, rgba(193,129,47,0.07) 0, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(193,129,47,0.06) 0, transparent 40%), var(--cream);
+    font-family:'Inter',-apple-system,sans-serif; color:var(--espresso); padding:24px 16px;
+  }
+  .card{
+    background:var(--paper); border-radius:28px; max-width:380px; width:100%;
+    padding:32px 24px 28px; text-align:center;
+    box-shadow:0 20px 50px -20px rgba(46,27,18,0.25); border:1px solid var(--cream-deep);
+  }
+  h1{ font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:1.4rem; margin:14px 0 4px; }
+  .eyebrow{ font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--caramel-deep); font-weight:600; margin:0; }
+  p.sub{ font-size:0.9rem; color:var(--espresso-soft); line-height:1.5; margin:6px 0 0; }
+  input{
+    width:100%; font-family:'Inter',sans-serif; font-size:1.05rem; padding:13px 16px;
+    border-radius:14px; border:1.5px solid var(--cream-deep); background:var(--cream);
+    color:var(--espresso); margin:14px 0 10px; text-align:center; letter-spacing:0.04em;
+  }
+  input:focus{outline:2px solid var(--caramel); border-color:var(--caramel);}
+  button.primary{
+    width:100%; border:none; font-family:'Inter',sans-serif; font-weight:600; font-size:0.95rem;
+    padding:13px; border-radius:14px; cursor:pointer; background:var(--caramel); color:var(--paper);
+  }
+  button.primary:active{background:var(--caramel-deep);}
+  button.ghost{
+    background:none; border:none; color:var(--caramel-deep); font-size:0.85rem;
+    cursor:pointer; font-family:'Inter',sans-serif; margin-top:10px; text-decoration:underline;
+  }
+  /* Stamps grid */
+  .stamps-grid{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:10px;
+    margin:22px 0 14px;
+  }
+  .stamp{
+    aspect-ratio:1; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem; border:2px dashed var(--cream-deep); background:var(--cream);
+    transition:all 0.4s ease;
+  }
+  .stamp.filled{
+    border:2px solid var(--caramel); background:var(--caramel);
+    box-shadow:0 3px 10px -3px rgba(193,129,47,0.5);
+  }
+  .stamp.filled::after{ content:'☕'; font-size:1.2rem; }
+  .stamp.empty::after{ content:''; }
+  .progress-bar-wrap{ background:var(--cream-deep); border-radius:999px; height:8px; margin:4px 0 12px; overflow:hidden; }
+  .progress-bar{ height:100%; border-radius:999px; background:linear-gradient(90deg,var(--caramel),var(--caramel-deep)); width:0%; transition:width 1s cubic-bezier(.22,1,.36,1); }
+  .pct-label{ font-size:0.78rem; color:var(--espresso-soft); margin-bottom:4px; }
+  .code-box{
+    margin:16px 0 8px; background:var(--cream); border:1.5px dashed var(--caramel);
+    border-radius:14px; padding:14px;
+  }
+  .code-box .code{ font-family:monospace; font-weight:700; font-size:1.2rem; letter-spacing:0.04em; }
+  .code-box .code-hint{ font-size:0.72rem; color:var(--espresso-soft); margin-top:4px; }
+  button.copy{
+    margin-top:8px; border:none; background:var(--caramel); color:var(--paper);
+    font-weight:600; font-size:0.82rem; padding:9px 16px; border-radius:999px;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .contact{ margin-top:18px; padding-top:14px; border-top:1px solid var(--cream-deep); display:flex; flex-direction:column; gap:7px; }
+  .contact a{ font-size:0.82rem; color:var(--espresso-soft); text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .name-tag{ font-size:0.8rem; color:var(--espresso-soft); margin:0 0 4px; }
+  .name-tag strong{ color:var(--espresso); }
+</style>
+</head>
+<body>
+<main class="card" id="app">
+  <p class="eyebrow">Muley Coffee</p>
+  <h1>Mi tarjeta de fidelidad</h1>
+  <p class="sub">Ingresa tu número de teléfono para ver tu progreso</p>
+  <input type="tel" id="phoneInput" placeholder="+56 9 XXXX XXXX" inputmode="tel" maxlength="16">
+  <button class="primary" id="enterBtn">Ver mi tarjeta</button>
+</main>
+
+<script>
+const CONFIG = {
+  cafeName: "Muley Coffee",
+  sellosParaPremio: 10,
+  ntfyTopic: "cafe-retiro-luis-7gx2k9",
+  binId: "6a35da17f5f4af5e2912180b",
+  masterKey: "$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW",
+};
+
+const API = "https://api.jsonbin.io/v3/b/" + CONFIG.binId;
+const app = document.getElementById('app');
+
+function normalizePhone(raw){
+  return raw.replace(/\s+/g,'').replace(/[^\d+]/g,'');
+}
+
+async function getRecord(){
+  const res = await fetch(API+"/latest",{headers:{'X-Master-Key':CONFIG.masterKey,'X-Bin-Meta':'false'}});
+  if(!res.ok) throw new Error('read failed');
+  const data = await res.json();
+  if(!data.customers || typeof data.customers !== 'object') data.customers = {};
+  return data;
+}
+
+function generateCode(phone, total){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s=''; for(let i=0;i<4;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return `FIEL-${total}-${s}`;
+}
+
+function contactHTML(){
+  return `
+    <div class="contact">
+      <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
+      <a href="https://maps.google.com/?q=Avda.+Errazuriz+620,+Retiro" target="_blank">📍 Avda. Errazuriz 620</a>
+      <a href="tel:+56944572336">📞 +569 4457 2336</a>
+    </div>
+  `;
+}
+
+function stampsHTML(filled, total){
+  let html = '<div class="stamps-grid">';
+  for(let i=0; i<total; i++){
+    html += `<div class="stamp ${i<filled?'filled':'empty'}"></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderCard(phone, customer){
+  const stamps = customer.stamps || 0;
+  const total  = customer.totalPrizesWon || 0;
+  const pct    = Math.round((stamps / CONFIG.sellosParaPremio) * 100);
+  const remaining = CONFIG.sellosParaPremio - stamps;
+
+  // check if there's a pending (unredeemed) prize code
+  const pendingCode = (customer.prizes || []).find(p => !p.redeemed);
+
+  app.innerHTML = `
+    <p class="eyebrow">${CONFIG.cafeName}</p>
+    <h1>Mi tarjeta ☕</h1>
+    <p class="name-tag">Teléfono: <strong>${phone}</strong></p>
+    ${stampsHTML(stamps, CONFIG.sellosParaPremio)}
+    <p class="pct-label">${stamps} de ${CONFIG.sellosParaPremio} cafés</p>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="pbar"></div></div>
+    ${stamps === 0 ? `<p class="sub">¡Empieza hoy! Cada café que compres suma un sello 🎉</p>` :
+      remaining === 0 ? `` :
+      `<p class="sub">Te faltan <strong style="color:var(--caramel-deep)">${remaining}</strong> café${remaining>1?'s':''} para ganar uno gratis</p>`
+    }
+    ${pendingCode ? `
+      <div class="code-box">
+        <div class="code">${pendingCode.code}</div>
+        <div class="code-hint">¡Tienes un café gratis pendiente!</div>
+        <button class="copy" id="copyBtn">Copiar código</button>
+      </div>
+      <p class="sub">Muestra este código en caja para canjearlo.</p>
+    ` : ''}
+    ${total > 0 ? `<p style="font-size:0.75rem;color:var(--espresso-soft);margin-top:8px;">Premios ganados: ${total}</p>` : ''}
+    ${contactHTML()}
+    <button class="ghost" id="backBtn">← Cambiar número</button>
+  `;
+
+  // animate progress bar
+  setTimeout(()=>{
+    const bar = document.getElementById('pbar');
+    if(bar) bar.style.width = pct + '%';
+  }, 100);
+
+  document.getElementById('backBtn').addEventListener('click', renderLogin);
+
+  const copyBtn = document.getElementById('copyBtn');
+  if(copyBtn){
+    copyBtn.addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(pendingCode.code);
+        copyBtn.textContent = '¡Copiado!';
+        setTimeout(()=>{ copyBtn.textContent='Copiar código'; }, 1800);
+      }catch(e){}
+    });
+  }
+}
+
+function renderLogin(){
+  app.innerHTML = `
+    <p class="eyebrow">${CONFIG.cafeName}</p>
+    <h1>Mi tarjeta de fidelidad</h1>
+    <p class="sub">Ingresa tu número de teléfono para ver tu progreso</p>
+    <input type="tel" id="phoneInput" placeholder="+56 9 XXXX XXXX" inputmode="tel" maxlength="16">
+    <button class="primary" id="enterBtn">Ver mi tarjeta</button>
+    ${contactHTML()}
+  `;
+  document.getElementById('enterBtn').addEventListener('click', handleEnter);
+  document.getElementById('phoneInput').addEventListener('keydown', e=>{ if(e.key==='Enter') handleEnter(); });
+}
+
+async function handleEnter(){
+  const raw = document.getElementById('phoneInput').value.trim();
+  const phone = normalizePhone(raw);
+  if(phone.length < 8){
+    document.getElementById('phoneInput').style.borderColor = 'var(--caramel-deep)';
+    return;
+  }
+  app.innerHTML = `<p class="eyebrow">${CONFIG.cafeName}</p><h1>Cargando…</h1>`;
+  try{
+    const record = await getRecord();
+    let customer = record.customers[phone];
+    if(!customer){
+      // new customer — create card
+      customer = { phone, stamps:0, totalPrizesWon:0, prizes:[], createdAt:Date.now() };
+      record.customers[phone] = customer;
+      await fetch(API,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Master-Key':CONFIG.masterKey},
+        body:JSON.stringify(record)
+      });
+    }
+    renderCard(phone, customer);
+  }catch(e){
+    app.innerHTML = `
+      <p class="eyebrow">${CONFIG.cafeName}</p>
+      <h1>Error al cargar</h1>
+      <p class="sub">Intenta de nuevo en un momento.</p>
+      <button class="primary" id="retryBtn" style="margin-top:14px;">Reintentar</button>
+    `;
+    document.getElementById('retryBtn').addEventListener('click', renderLogin);
+  }
+}
+
+// init
+document.getElementById('enterBtn').addEventListener('click', handleEnter);
+document.getElementById('phoneInput').addEventListener('keydown', e=>{ if(e.key==='Enter') handleEnter(); });
+</script>
+</body>
+</html>

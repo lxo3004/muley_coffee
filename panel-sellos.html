@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Sellos · Muley Coffee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --espresso:#2E1B12; --espresso-soft:#4A2F20;
+    --cream:#F7EEE0; --cream-deep:#EDE0C8;
+    --caramel:#C1812F; --caramel-deep:#9C5F1F;
+    --sage:#6E8B6E; --rust:#B0503B; --paper:#FFFCF6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ min-height:100vh; background:var(--cream); font-family:'Inter',-apple-system,sans-serif; color:var(--espresso); padding:24px 16px 60px; }
+  .wrap{max-width:420px;margin:0 auto;}
+  h1{ font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:1.4rem; margin:0 0 4px; }
+  .eyebrow{ font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--caramel-deep); font-weight:600; margin:0 0 14px; }
+  .card{ background:var(--paper); border:1px solid var(--cream-deep); border-radius:20px; padding:20px; margin-bottom:16px; }
+  input{
+    width:100%; font-family:'Inter',sans-serif; font-size:1rem; padding:12px 14px;
+    border-radius:12px; border:1.5px solid var(--cream-deep); background:var(--cream);
+    color:var(--espresso); margin-bottom:10px;
+  }
+  input:focus{outline:2px solid var(--caramel); border-color:var(--caramel);}
+  button.primary{
+    width:100%; border:none; font-family:'Inter',sans-serif; font-weight:600; font-size:0.95rem;
+    padding:12px; border-radius:12px; cursor:pointer; background:var(--caramel); color:var(--paper);
+  }
+  button.primary:active{background:var(--caramel-deep);}
+  button.danger{
+    width:100%; border:1.5px solid var(--rust); font-family:'Inter',sans-serif; font-weight:600;
+    font-size:0.9rem; padding:11px; border-radius:12px; cursor:pointer;
+    background:transparent; color:var(--rust); margin-top:8px;
+  }
+  button.ghost{ background:none; border:none; color:var(--caramel-deep); font-size:0.85rem; cursor:pointer; font-family:'Inter',sans-serif; margin-top:8px; text-decoration:underline; padding:0; width:auto; }
+  .badge{ display:inline-block; font-size:0.7rem; font-weight:700; letter-spacing:0.04em; padding:3px 10px; border-radius:999px; text-transform:uppercase; }
+  .badge.ok{background:rgba(110,139,110,0.15); color:var(--sage);}
+  .badge.warn{background:rgba(193,129,47,0.15); color:var(--caramel-deep);}
+  .badge.used{background:rgba(176,80,59,0.12); color:var(--rust);}
+  .stamps-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:12px 0; }
+  .stamp{ aspect-ratio:1; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; border:2px dashed var(--cream-deep); background:var(--cream); }
+  .stamp.filled{ border:2px solid var(--caramel); background:var(--caramel); }
+  .stamp.filled::after{ content:'☕'; font-size:1rem; }
+  .info-row{ display:flex; justify-content:space-between; font-size:0.85rem; color:var(--espresso-soft); padding:6px 0; border-bottom:1px solid var(--cream-deep); }
+  .info-row:last-child{ border-bottom:none; }
+  .info-row strong{ color:var(--espresso); }
+  .customer-list-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--cream-deep); font-size:0.83rem; }
+  .customer-list-item:last-child{border-bottom:none;}
+  .toggle-list{ background:none; border:none; color:var(--caramel-deep); font-size:0.85rem; text-decoration:underline; padding:0; width:auto; }
+  .pin-screen{text-align:center; padding-top:40px;}
+  .tabs{ display:flex; gap:8px; margin-bottom:16px; }
+  .tab{
+    flex:1; padding:10px; border-radius:12px; border:1.5px solid var(--cream-deep);
+    background:var(--paper); font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:600;
+    cursor:pointer; color:var(--espresso-soft);
+  }
+  .tab.active{ background:var(--caramel); color:var(--paper); border-color:var(--caramel); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- PIN screen -->
+  <div id="pinScreen" class="pin-screen">
+    <p class="eyebrow">Muley Coffee</p>
+    <h1>Panel de sellos</h1>
+    <p style="color:var(--espresso-soft);font-size:0.9rem;">Ingresa el PIN del local</p>
+    <input type="password" inputmode="numeric" id="pinInput" placeholder="PIN" maxlength="6">
+    <button class="primary" id="pinBtn">Entrar</button>
+    <p id="pinError" style="color:var(--rust);font-size:0.85rem;display:none;">PIN incorrecto</p>
+  </div>
+
+  <!-- Main screen -->
+  <div id="mainScreen" style="display:none;">
+    <p class="eyebrow">Muley Coffee</p>
+    <h1>Panel de sellos</h1>
+
+    <div class="tabs">
+      <button class="tab active" id="tabSellos" onclick="showTab('sellos')">Agregar sello</button>
+      <button class="tab" id="tabCanje" onclick="showTab('canje')">Canjear premio</button>
+      <button class="tab" id="tabClientes" onclick="showTab('clientes')">Clientes</button>
+    </div>
+
+    <!-- Tab: Agregar sello -->
+    <div id="panelSellos">
+      <div class="card">
+        <label style="font-size:0.85rem;color:var(--espresso-soft);">Teléfono del cliente</label>
+        <input type="tel" id="selloPhone" placeholder="+56 9 XXXX XXXX" inputmode="tel">
+        <button class="primary" id="buscarBtn">Buscar cliente</button>
+      </div>
+      <div id="customerResult"></div>
+    </div>
+
+    <!-- Tab: Canjear premio -->
+    <div id="panelCanje" style="display:none;">
+      <div class="card">
+        <label style="font-size:0.85rem;color:var(--espresso-soft);">Código del cliente</label>
+        <input type="text" id="codeInput" placeholder="FIEL-10-7K3F" autocapitalize="characters">
+        <button class="primary" id="checkCodeBtn">Verificar código</button>
+        <div id="codeResult" style="margin-top:12px;font-size:0.9rem;"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Clientes -->
+    <div id="panelClientes" style="display:none;">
+      <div class="card">
+        <p style="font-size:0.85rem;color:var(--espresso-soft);margin:0 0 10px;">Total de clientes registrados: <strong id="totalClientes">—</strong></p>
+        <button class="toggle-list" id="toggleClientesBtn">Ver todos ▾</button>
+        <div id="clientesList" style="display:none;margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAFF_PIN = "2304";
+const CONFIG = {
+  sellosParaPremio: 10,
+  ntfyTopic: "cafe-retiro-luis-7gx2k9",
+  binId: "6a35da17f5f4af5e2912180b",
+  masterKey: "$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW",
+};
+const API = "https://api.jsonbin.io/v3/b/" + CONFIG.binId;
+
+function normalizePhone(raw){ return raw.replace(/\s+/g,'').replace(/[^\d+]/g,''); }
+
+async function getRecord(){
+  const res = await fetch(API+"/latest",{headers:{'X-Master-Key':CONFIG.masterKey,'X-Bin-Meta':'false'}});
+  if(!res.ok) throw new Error('read failed');
+  const data = await res.json();
+  if(!data.customers || typeof data.customers!=='object') data.customers={};
+  if(!data.winners || typeof data.winners!=='object') data.winners={};
+  return data;
+}
+
+async function putRecord(record){
+  const res = await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':CONFIG.masterKey},body:JSON.stringify(record)});
+  if(!res.ok) throw new Error('write failed');
+}
+
+function generateCode(total){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s=''; for(let i=0;i<4;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return `FIEL-${total}-${s}`;
+}
+
+function sendAlert(phone, total, code){
+  fetch(`https://ntfy.sh/${CONFIG.ntfyTopic}`,{
+    method:'POST',
+    body:`Ganador tarjeta fidelidad - Tel: ${phone} - Premio #${total} - Codigo: ${code}`,
+    headers:{'Title':'Premio fidelidad','Tags':'tada'}
+  }).catch(()=>{});
+}
+
+function stampsHTML(filled, total){
+  let h='<div class="stamps-grid">';
+  for(let i=0;i<total;i++) h+=`<div class="stamp ${i<filled?'filled':'empty'}"></div>`;
+  return h+'</div>';
+}
+
+// PIN
+document.getElementById('pinBtn').addEventListener('click', ()=>{
+  if(document.getElementById('pinInput').value === STAFF_PIN){
+    document.getElementById('pinScreen').style.display='none';
+    document.getElementById('mainScreen').style.display='block';
+    loadClientesCount();
+  }else{
+    document.getElementById('pinError').style.display='block';
+  }
+});
+document.getElementById('pinInput').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('pinBtn').click(); });
+
+// Tabs
+function showTab(tab){
+  ['sellos','canje','clientes'].forEach(t=>{
+    document.getElementById('panel'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab?'block':'none';
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+  });
+  if(tab==='clientes') loadClientes();
+}
+
+// --- TAB SELLOS ---
+document.getElementById('buscarBtn').addEventListener('click', buscarCliente);
+document.getElementById('selloPhone').addEventListener('keydown', e=>{ if(e.key==='Enter') buscarCliente(); });
+
+async function buscarCliente(){
+  const phone = normalizePhone(document.getElementById('selloPhone').value.trim());
+  if(phone.length < 8){ document.getElementById('selloPhone').style.borderColor='var(--caramel-deep)'; return; }
+  const res = document.getElementById('customerResult');
+  res.innerHTML = '<div class="card"><p style="font-size:0.9rem;">Buscando…</p></div>';
+  try{
+    const record = await getRecord();
+    let customer = record.customers[phone];
+    if(!customer){
+      customer = { phone, stamps:0, totalPrizesWon:0, prizes:[], createdAt:Date.now() };
+      record.customers[phone] = customer;
+      await putRecord(record);
+    }
+    renderCustomerCard(phone, customer, record);
+  }catch(e){
+    res.innerHTML='<div class="card"><p style="color:var(--rust);font-size:0.9rem;">Error al buscar. Intenta de nuevo.</p></div>';
+  }
+}
+
+function renderCustomerCard(phone, customer, record){
+  const res = document.getElementById('customerResult');
+  const stamps = customer.stamps || 0;
+  const remaining = CONFIG.sellosParaPremio - stamps;
+  const hasPending = (customer.prizes||[]).some(p=>!p.redeemed);
+  res.innerHTML = `
+    <div class="card">
+      <div class="info-row"><span>Teléfono</span><strong>${phone}</strong></div>
+      <div class="info-row"><span>Sellos actuales</span><strong>${stamps} / ${CONFIG.sellosParaPremio}</strong></div>
+      <div class="info-row"><span>Premios ganados</span><strong>${customer.totalPrizesWon||0}</strong></div>
+      ${hasPending ? `<div class="info-row"><span>Estado</span><span class="badge warn">Premio pendiente de canje</span></div>` : ''}
+      ${stampsHTML(stamps, CONFIG.sellosParaPremio)}
+      ${remaining > 0 ? `<button class="primary" id="addStampBtn">+ Agregar sello (faltan ${remaining})</button>` : `<p style="text-align:center;font-size:0.9rem;color:var(--sage);font-weight:600;">¡Tarjeta completa! Canjea el premio en la pestaña Canjear</p>`}
+      <button class="ghost" id="clearResultBtn">← Buscar otro</button>
+    </div>
+  `;
+  document.getElementById('clearResultBtn').addEventListener('click', ()=>{ document.getElementById('customerResult').innerHTML=''; document.getElementById('selloPhone').value=''; });
+  const addBtn = document.getElementById('addStampBtn');
+  if(addBtn){
+    addBtn.addEventListener('click', async ()=>{
+      addBtn.textContent = 'Guardando…';
+      addBtn.disabled = true;
+      try{
+        const fresh = await getRecord();
+        const c = fresh.customers[phone];
+        if(!c){ throw new Error('not found'); }
+        c.stamps = (c.stamps||0) + 1;
+        c.lastVisit = Date.now();
+        let wonCode = null;
+        if(c.stamps >= CONFIG.sellosParaPremio){
+          c.totalPrizesWon = (c.totalPrizesWon||0) + 1;
+          wonCode = generateCode(c.totalPrizesWon);
+          if(!c.prizes) c.prizes=[];
+          c.prizes.push({ code:wonCode, ts:Date.now(), redeemed:false, redeemedAt:null });
+          c.stamps = 0; // reset card
+        }
+        await putRecord(fresh);
+        if(wonCode){
+          sendAlert(phone, c.totalPrizesWon, wonCode);
+          res.innerHTML = `
+            <div class="card" style="text-align:center;">
+              <p style="font-size:1rem;font-weight:600;color:var(--sage);">🎉 ¡Tarjeta completa!</p>
+              <p style="font-size:0.85rem;color:var(--espresso-soft);">Premio generado para ${phone}:</p>
+              <div style="font-family:monospace;font-weight:700;font-size:1.2rem;margin:8px 0;">${wonCode}</div>
+              <p style="font-size:0.78rem;color:var(--espresso-soft);">El cliente puede verlo en su tarjeta virtual.</p>
+              <button class="ghost" id="clearResultBtn2">← Buscar otro</button>
+            </div>
+          `;
+          document.getElementById('clearResultBtn2').addEventListener('click',()=>{ document.getElementById('customerResult').innerHTML=''; document.getElementById('selloPhone').value=''; });
+        }else{
+          renderCustomerCard(phone, fresh.customers[phone], fresh);
+        }
+      }catch(e){
+        addBtn.textContent='+ Agregar sello';
+        addBtn.disabled=false;
+        res.innerHTML+='<p style="color:var(--rust);font-size:0.85rem;">Error al guardar. Intenta de nuevo.</p>';
+      }
+    });
+  }
+}
+
+// --- TAB CANJE ---
+document.getElementById('checkCodeBtn').addEventListener('click', async ()=>{
+  const raw = document.getElementById('codeInput').value.trim().toUpperCase();
+  const result = document.getElementById('codeResult');
+  if(!raw){ result.innerHTML=''; return; }
+  result.innerHTML='Buscando…';
+  try{
+    const record = await getRecord();
+    // search in all customers
+    let found = null, foundPhone = null;
+    for(const [ph, c] of Object.entries(record.customers)){
+      const prize = (c.prizes||[]).find(p=>p.code===raw);
+      if(prize){ found=prize; foundPhone=ph; break; }
+    }
+    if(!found){
+      result.innerHTML='<span class="badge used">Código inválido</span>';
+      return;
+    }
+    if(found.redeemed){
+      result.innerHTML=`<span class="badge used">Ya canjeado</span><p style="font-size:0.85rem;">Canjeado el ${new Date(found.redeemedAt).toLocaleString('es-CL')}</p>`;
+      return;
+    }
+    result.innerHTML=`
+      <span class="badge ok">Válido — cliente ${foundPhone}</span>
+      <p style="font-size:0.85rem;">Ganado el ${new Date(found.ts).toLocaleString('es-CL')}</p>
+      <button class="primary" id="redeemBtn" style="margin-top:10px;">Marcar como canjeado ✓</button>
+    `;
+    document.getElementById('redeemBtn').addEventListener('click', async ()=>{
+      try{
+        const fresh = await getRecord();
+        const c = fresh.customers[foundPhone];
+        const p = (c.prizes||[]).find(pr=>pr.code===raw);
+        if(!p||p.redeemed){ result.innerHTML='<span class="badge used">Ya fue canjeado</span>'; return; }
+        p.redeemed=true; p.redeemedAt=Date.now();
+        await putRecord(fresh);
+        result.innerHTML='<span class="badge ok">Canjeado correctamente ✓</span>';
+      }catch(e){
+        result.innerHTML+='<p style="color:var(--rust);font-size:0.85rem;">Error, intenta de nuevo.</p>';
+      }
+    });
+  }catch(e){
+    result.innerHTML='<span class="badge used">Error al verificar</span>';
+  }
+});
+
+// --- TAB CLIENTES ---
+async function loadClientesCount(){
+  try{
+    const record = await getRecord();
+    document.getElementById('totalClientes').textContent = Object.keys(record.customers).length;
+  }catch(e){}
+}
+
+async function loadClientes(){
+  await loadClientesCount();
+  const list = document.getElementById('clientesList');
+  list.innerHTML='Cargando…';
+  try{
+    const record = await getRecord();
+    const clients = Object.values(record.customers).sort((a,b)=>(b.lastVisit||0)-(a.lastVisit||0));
+    if(clients.length===0){ list.innerHTML='<p style="font-size:0.85rem;color:var(--espresso-soft);">Sin clientes aún.</p>'; return; }
+    list.innerHTML = clients.map(c=>`
+      <div class="customer-list-item">
+        <span>${c.phone}</span>
+        <span>${c.stamps||0}/${CONFIG.sellosParaPremio} sellos</span>
+        <span class="badge ${(c.prizes||[]).some(p=>!p.redeemed)?'warn':'ok'}">${(c.prizes||[]).some(p=>!p.redeemed)?'Premio pendiente':'OK'}</span>
+      </div>
+    `).join('');
+  }catch(e){
+    list.innerHTML='<p style="color:var(--rust);font-size:0.85rem;">Error al cargar.</p>';
+  }
+}
+
+document.getElementById('toggleClientesBtn').addEventListener('click', (e)=>{
+  const list = document.getElementById('clientesList');
+  const hidden = list.style.display==='none';
+  list.style.display = hidden?'block':'none';
+  e.target.textContent = hidden?'Ocultar ▴':'Ver todos ▾';
+  if(hidden) loadClientes();
+});
+</script>
+</body>
+</html>
