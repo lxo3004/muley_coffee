@@ -3,426 +3,247 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Café Premiado</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Muley Coffee</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --espresso:#2E1B12;
-    --espresso-soft:#4A2F20;
-    --cream:#F7EEE0;
-    --cream-deep:#EDE0C8;
-    --caramel:#C1812F;
-    --caramel-deep:#9C5F1F;
-    --sage:#6E8B6E;
-    --paper:#FFFCF6;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:
-      radial-gradient(circle at 15% 20%, rgba(193,129,47,0.07) 0, transparent 40%),
-      radial-gradient(circle at 85% 80%, rgba(193,129,47,0.06) 0, transparent 40%),
-      var(--cream);
-    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-    color:var(--espresso);
-    padding:24px 16px;
-  }
-  .card{
-    background:var(--paper);
-    border-radius:28px;
-    max-width:380px;
-    width:100%;
-    padding:36px 28px 30px;
-    text-align:center;
-    box-shadow:0 20px 50px -20px rgba(46,27,18,0.25);
-    border:1px solid var(--cream-deep);
-  }
-  h1{
-    font-family:'Fraunces',Georgia,serif;
-    font-weight:600;
-    font-size:1.5rem;
-    margin:18px 0 6px;
-    color:var(--espresso);
-  }
-  .eyebrow{
-    font-size:0.72rem;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--caramel-deep);
-    font-weight:600;
-    margin:0;
-  }
-  p.sub{
-    font-size:0.95rem;
-    color:var(--espresso-soft);
-    line-height:1.5;
-    margin:6px 0 0;
-  }
-  .cup-wrap{ position:relative; width:160px; height:180px; margin:18px auto 4px; }
-  .steam{
-    position:absolute; width:5px; height:28px;
-    background:rgba(193,129,47,0.35); border-radius:4px; opacity:0;
-    animation:rise 2.4s ease-in-out infinite;
-  }
-  .steam.s1{left:56px; top:-28px; animation-delay:0s;}
-  .steam.s2{left:76px; top:-28px; animation-delay:0.6s;}
-  .steam.s3{left:96px; top:-28px; animation-delay:1.2s;}
-  @keyframes rise{
-    0%{opacity:0; transform:translateY(0) scaleY(0.7);}
-    30%{opacity:0.6;}
-    100%{opacity:0; transform:translateY(-20px) scaleY(1.1);}
-  }
-  .mug-pct{
-    position:absolute;
-    top:50%; left:0; right:0;
-    transform:translateY(-50%);
-    font-family:'Fraunces',Georgia,serif;
-    font-size:1.1rem;
-    font-weight:600;
-    color:var(--paper);
-    text-align:center;
-    pointer-events:none;
-    text-shadow:0 1px 3px rgba(46,27,18,0.4);
-    opacity:0;
-    transition:opacity 0.5s ease 0.8s;
-  }
-  .mug-pct.visible{ opacity:1; }
-  .progress-label{ font-size:0.85rem; color:var(--espresso-soft); margin-top:14px; }
-  .progress-label strong{color:var(--caramel-deep);}
-  .contact{
-    margin-top:18px;
-    padding-top:16px;
-    border-top:1px solid var(--cream-deep);
-    display:flex;
-    flex-direction:column;
-    gap:7px;
-  }
-  .contact a{
-    font-size:0.82rem;
-    color:var(--espresso-soft);
-    text-decoration:none;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-  }
-  .contact a:hover{ color:var(--caramel-deep); }
-  .code-box{
-    margin:20px 0 6px; background:var(--cream);
-    border:1.5px dashed var(--caramel); border-radius:14px; padding:16px;
-  }
-  .code-box .code{
-    font-family:'Inter',monospace; font-weight:700; font-size:1.3rem;
-    letter-spacing:0.04em; color:var(--espresso);
-  }
-  .code-box .code-hint{ font-size:0.72rem; color:var(--espresso-soft); margin-top:4px; }
-  button.copy{
-    margin-top:10px; border:none; background:var(--caramel); color:var(--paper);
-    font-weight:600; font-size:0.85rem; padding:10px 18px; border-radius:999px;
-    cursor:pointer; font-family:'Inter',sans-serif;
-  }
-  button.copy:active{background:var(--caramel-deep);}
-  .instructions{ font-size:0.85rem; color:var(--espresso-soft); line-height:1.5; margin-top:14px; }
-  .footer-note{ margin-top:22px; font-size:0.7rem; color:#A7967F; }
-  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+:root{
+  --esp:#2E1B12;--esps:#4A2F20;--crm:#F7EEE0;--crmd:#EDE0C8;
+  --car:#C1812F;--card:#9C5F1F;--ppr:#FFFCF6;--grn:#6E8B6E;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 20% 20%,rgba(193,129,47,.08) 0,transparent 45%),
+    radial-gradient(circle at 80% 80%,rgba(193,129,47,.06) 0,transparent 45%),var(--crm);
+  font-family:'Inter',sans-serif;color:var(--esp);padding:24px 16px;
+}
+.card{
+  background:var(--ppr);border-radius:28px;max-width:370px;width:100%;
+  padding:34px 26px 28px;text-align:center;
+  box-shadow:0 20px 60px -20px rgba(46,27,18,.28);border:1px solid var(--crmd);
+}
+.eyebrow{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--card);font-weight:700;}
+h1{font-family:'Fraunces',serif;font-size:1.45rem;font-weight:600;margin:12px 0 4px;color:var(--esp);}
+p.sub{font-size:.9rem;color:var(--esps);line-height:1.5;margin-top:6px;}
+/* Taza SVG */
+.mug-wrap{position:relative;width:150px;height:170px;margin:20px auto 6px;}
+.steam{position:absolute;width:5px;height:26px;border-radius:4px;
+  background:rgba(193,129,47,.35);opacity:0;animation:rise 2.4s ease-in-out infinite;}
+.steam.s1{left:52px;top:-26px;animation-delay:0s;}
+.steam.s2{left:72px;top:-26px;animation-delay:.65s;}
+.steam.s3{left:92px;top:-26px;animation-delay:1.3s;}
+@keyframes rise{0%{opacity:0;transform:translateY(0);}35%{opacity:.65;}100%{opacity:0;transform:translateY(-18px);}}
+.plabel{font-size:.82rem;color:var(--esps);margin-top:12px;}
+.plabel strong{color:var(--card);}
+.winner-box{margin:18px 0 6px;background:var(--crm);border:1.5px dashed var(--car);border-radius:14px;padding:16px;}
+.winner-box .code{font-family:monospace;font-weight:700;font-size:1.25rem;letter-spacing:.05em;color:var(--esp);}
+.winner-box .hint{font-size:.72rem;color:var(--esps);margin-top:4px;}
+button.copybtn{margin-top:10px;border:none;background:var(--car);color:var(--ppr);
+  font-weight:600;font-size:.83rem;padding:9px 18px;border-radius:999px;cursor:pointer;font-family:'Inter',sans-serif;}
+button.copybtn:active{background:var(--card);}
+.contact{margin-top:18px;padding-top:16px;border-top:1px solid var(--crmd);display:flex;flex-direction:column;gap:8px;}
+.contact a{font-size:.82rem;color:var(--esps);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+.fnote{margin-top:20px;font-size:.68rem;color:#A7967F;}
 </style>
 </head>
 <body>
-  <main class="card" id="app">
-    <p class="eyebrow">Cargando…</p>
-  </main>
-
+<main class="card" id="app"><p class="eyebrow">Muley Coffee</p><h1>Cargando…</h1></main>
 <script>
-/* ======== CONFIGURACIÓN — edita estos valores ======== */
-const CONFIG = {
-  cafeName: "Muley Coffee",
-  premioCada: 30,
-  cooldownMinutes: 30,
-  ntfyTopic: "cafe-retiro-luis-7gx2k9",
-  binId: "6a35da17f5f4af5e2912180b",
-  masterKey: "$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW",
+const C={
+  name:"Muley Coffee",
+  cada:50,
+  cooldown:30,
+  ntfy:"cafe-retiro-luis-7gx2k9",
+  bin:"6a35da17f5f4af5e2912180b",
+  key:"$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW"
 };
-/* ======================================================= */
+const API="https://api.jsonbin.io/v3/b/"+C.bin;
+const app=document.getElementById('app');
+const CD_KEY='muley-last-visit';
 
-const API = "https://api.jsonbin.io/v3/b/" + CONFIG.binId;
-const app = document.getElementById('app');
+function contact(){return`<div class="contact">
+  <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
+  <a href="https://maps.google.com/?q=Avda.+Errazuriz+620" target="_blank">📍 Avda. Errazuriz 620</a>
+  <a href="tel:+56944572336">📞 +569 4457 2336</a>
+</div>`;}
 
-function cupHTML(fillPercent, winner, label){
-  const pct = Math.max(0, Math.min(100, fillPercent));
-  // mug body: fills from bottom. clipRect y goes from 130 (empty) to 20 (full) over 110px
-  const fillY = 130 - (pct / 100) * 110;
-  return `
-    <div class="cup-wrap" style="position:relative;width:160px;height:180px;margin:18px auto 4px;">
-      ${winner ? `<div class="steam s1"></div><div class="steam s2"></div><div class="steam s3"></div>` : ``}
-      <svg viewBox="0 0 160 180" xmlns="http://www.w3.org/2000/svg" width="160" height="180">
-        <defs>
-          <clipPath id="mugClip">
-            <!-- mug body shape -->
-            <path d="M28,20 Q26,18 26,16 L26,10 Q26,6 30,6 L110,6 Q114,6 114,10 L114,16 Q114,18 112,20 L108,135 Q107,142 100,144 L40,144 Q33,142 32,135 Z"/>
-          </clipPath>
-          <clipPath id="fillClip">
-            <rect id="fillRect" x="26" y="130" width="90" height="110"/>
-          </clipPath>
-          <linearGradient id="coffeeGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#C1812F"/>
-            <stop offset="100%" stop-color="#7A4010"/>
-          </linearGradient>
-          <linearGradient id="mugGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#EDE0C8"/>
-            <stop offset="40%" stop-color="#F7EEE0"/>
-            <stop offset="100%" stop-color="#D4C4AA"/>
-          </linearGradient>
-        </defs>
-
-        <!-- saucer -->
-        <ellipse cx="70" cy="158" rx="52" ry="8" fill="#D4C4AA"/>
-        <ellipse cx="70" cy="155" rx="52" ry="8" fill="#EDE0C8"/>
-        <ellipse cx="70" cy="153" rx="40" ry="5" fill="#D4C4AA" opacity="0.5"/>
-
-        <!-- mug body background -->
-        <path d="M28,20 Q26,18 26,16 L26,10 Q26,6 30,6 L110,6 Q114,6 114,10 L114,16 Q114,18 112,20 L108,135 Q107,142 100,144 L40,144 Q33,142 32,135 Z" fill="url(#mugGrad)"/>
-
-        <!-- coffee fill (clipped to mug shape) -->
-        <g clip-path="url(#mugClip)">
-          <rect id="coffeeFill" x="26" y="130" width="90" height="110"
-            fill="url(#coffeeGrad)"
-            style="transform:translateY(0);transition:transform 1.2s cubic-bezier(.22,1,.36,1)"/>
-        </g>
-
-        <!-- mug rim highlight -->
-        <path d="M28,20 L112,20" stroke="#C8B89A" stroke-width="1.5" fill="none" opacity="0.6"/>
-
-        <!-- mug body outline -->
-        <path d="M28,20 Q26,18 26,16 L26,10 Q26,6 30,6 L110,6 Q114,6 114,10 L114,16 Q114,18 112,20 L108,135 Q107,142 100,144 L40,144 Q33,142 32,135 Z"
-          fill="none" stroke="#C8B89A" stroke-width="1.5"/>
-
-        <!-- handle -->
-        <path d="M114,40 Q148,40 148,75 Q148,110 114,110"
-          fill="none" stroke="#D4C4AA" stroke-width="11" stroke-linecap="round"/>
-        <path d="M114,40 Q142,40 142,75 Q142,110 114,110"
-          fill="none" stroke="#EDE0C8" stroke-width="7" stroke-linecap="round"/>
-
-        <!-- foam / crema on top when full -->
-        ${winner ? `<ellipse cx="70" cy="20" rx="40" ry="6" fill="#F5E6CC" opacity="0.9"/>
-        <ellipse cx="58" cy="19" rx="10" ry="4" fill="#FFFCF6" opacity="0.5"/>
-        <ellipse cx="82" cy="21" rx="8" ry="3" fill="#FFFCF6" opacity="0.4"/>` : ``}
-
-        <!-- percentage text inside mug -->
-        <text id="pctText" x="70" y="88" text-anchor="middle" dominant-baseline="middle"
-          font-family="'Fraunces',Georgia,serif" font-size="18" font-weight="600"
-          fill="#FFFCF6" opacity="0"
-          style="text-shadow:0 1px 3px rgba(46,27,18,0.5);">
-          ${label}
-        </text>
-      </svg>
-    </div>
-    <script>
-      (function(){
-        // animate fill upward
-        const fill = document.getElementById('coffeeFill');
-        const txt  = document.getElementById('pctText');
-        const targetY = ${fillY};
-        const startY  = 130;
-        const shift   = startY - targetY;
-        if(fill){
-          requestAnimationFrame(()=>requestAnimationFrame(()=>{
-            fill.style.transform = 'translateY(-' + shift + 'px)';
-          }));
-        }
-        if(txt && ${pct} > 8){
-          setTimeout(()=>{ txt.style.opacity = '1'; txt.style.transition = 'opacity 0.5s ease'; }, 900);
-        }
-      })();
-    <\/script>
-  `;
-}
+function mugSVG(pct,winner,label){
+  const fp=Math.max(0,Math.min(100,pct));
+  const fillY=128-(fp/100)*108;
+  const sh=128-fillY;
+  const id='f'+Date.now();
+  setTimeout(()=>{
+    const el=document.getElementById(id);
+    if(el){el.style.transform=`translateY(-${sh}px)`;}
+    const tx=document.getElementById(id+'t');
+    if(tx&&fp>10){setTimeout(()=>{tx.style.opacity='1';},900);}
+  },80);
+  return`<div class="mug-wrap">
+  ${winner?'<div class="steam s1"></div><div class="steam s2"></div><div class="steam s3"></div>':''}
+  <svg viewBox="0 0 150 170" width="150" height="170" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="mc"><path d="M25,18 L25,10 Q25,4 31,4 L105,4 Q111,4 111,10 L111,18 L106,132 Q105,140 98,142 L38,142 Q31,140 30,132 Z"/></clipPath>
+      <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#C1812F"/><stop offset="100%" stop-color="#7A4010"/>
+      </linearGradient>
+      <linearGradient id="mg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#E0D0B8"/><stop offset="50%" stop-color="#F7EEE0"/><stop offset="100%" stop-color="#CFC0A0"/>
+      </linearGradient>
+    </defs>
+    <!-- plato -->
+    <ellipse cx="68" cy="156" rx="50" ry="8" fill="#D4C4AA"/>
+    <ellipse cx="68" cy="153" rx="50" ry="8" fill="#EDE0C8"/>
+    <!-- cuerpo fondo -->
+    <path d="M25,18 L25,10 Q25,4 31,4 L105,4 Q111,4 111,10 L111,18 L106,132 Q105,140 98,142 L38,142 Q31,140 30,132 Z" fill="url(#mg)"/>
+    <!-- café -->
+    <g clip-path="url(#mc)">
+      <rect id="${id}" x="25" y="128" width="88" height="116" fill="url(#cg)" style="transition:transform 1.2s cubic-bezier(.22,1,.36,1);"/>
+    </g>
+    <!-- borde taza -->
+    <path d="M25,18 L25,10 Q25,4 31,4 L105,4 Q111,4 111,10 L111,18 L106,132 Q105,140 98,142 L38,142 Q31,140 30,132 Z" fill="none" stroke="#C8B89A" stroke-width="1.5"/>
+    <!-- asa -->
+    <path d="M111,38 Q146,38 146,72 Q146,108 111,108" fill="none" stroke="#D4C4AA" stroke-width="11" stroke-linecap="round"/>
+    <path d="M111,38 Q140,38 140,72 Q140,108 111,108" fill="none" stroke="#EDE0C8" stroke-width="7" stroke-linecap="round"/>
+    <!-- borde superior -->
+    <line x1="25" y1="18" x2="111" y2="18" stroke="#C8B89A" stroke-width="1.5" opacity=".6"/>
+    ${winner?`<ellipse cx="68" cy="18" rx="40" ry="6" fill="#F5E6CC" opacity=".9"/>
+    <ellipse cx="56" cy="17" rx="10" ry="4" fill="#FFFCF6" opacity=".5"/>`:``}
+    <!-- texto -->
+    <text id="${id}t" x="68" y="85" text-anchor="middle" dominant-baseline="middle"
+      font-family="'Fraunces',Georgia,serif" font-size="15" font-weight="600"
+      fill="#FFFCF6" opacity="0" style="transition:opacity .5s ease;">
+      ${label}
+    </text>
+  </svg>
+</div>`;}
 
 function renderParticipant(count){
-  const mod = count % CONFIG.premioCada;
-  const remaining = CONFIG.premioCada - mod;
-  const fillPct = (mod / CONFIG.premioCada) * 100;
-  const label = remaining === 1 ? '¡1 más!' : `faltan ${remaining}`;
-  app.innerHTML = `
-    <p class="eyebrow">${CONFIG.cafeName}</p>
+  const mod=count%C.cada;
+  const rem=C.cada-mod;
+  const pct=(mod/C.cada)*100;
+  const lbl=rem===1?'¡1 más!':`faltan ${rem}`;
+  app.innerHTML=`
+    <p class="eyebrow">${C.name}</p>
     <h1>¡Gracias por tu visita!</h1>
-    ${cupHTML(fillPct, false, label)}
-    <p class="progress-label">Eres la visita N.º <strong>${count}</strong></p>
-    <p class="progress-label">Faltan <strong>${remaining}</strong> visitas para el próximo café gratis ☕</p>
-    <p class="instructions">Vuelve a escanear el código en tu próxima visita para seguir participando.</p>
-    <div class="contact">
-      <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
-      <a href="https://maps.google.com/?q=Avda.+Errazuriz+620,+Retiro" target="_blank">📍 Avda. Errazuriz 620</a>
-      <a href="tel:+56944572336">📞 +569 4457 2336</a>
-    </div>
-    <p class="footer-note">${CONFIG.cafeName} · promoción de visitas</p>
-  `;
+    ${mugSVG(pct,false,lbl)}
+    <p class="plabel">Eres la visita N.º <strong>${count}</strong></p>
+    <p class="plabel">Faltan <strong>${rem}</strong> visita${rem>1?'s':''} para el próximo café gratis ☕</p>
+    <p class="sub" style="margin-top:10px;">Escanea el código en tu próxima visita para seguir participando.</p>
+    ${contact()}
+    <p class="fnote">${C.name} · promoción de visitas</p>`;
 }
 
-function renderWinner(count, code){
-  app.innerHTML = `
-    <p class="eyebrow">${CONFIG.cafeName}</p>
+function renderWinner(count,code){
+  app.innerHTML=`
+    <p class="eyebrow">${C.name}</p>
     <h1>¡Ganaste un café! 🎉</h1>
-    ${cupHTML(100, true, '¡Ganaste!')}
-    <p class="progress-label">Fuiste la visita N.º <strong>${count}</strong></p>
-    <div class="code-box">
+    ${mugSVG(100,true,'¡Ganaste!')}
+    <p class="plabel">Fuiste la visita N.º <strong>${count}</strong></p>
+    <div class="winner-box">
       <div class="code" id="codeText">${code}</div>
-      <div class="code-hint">Tu código de premio</div>
-      <button class="copy" id="copyBtn">Copiar código</button>
+      <div class="hint">Tu código de premio</div>
+      <button class="copybtn" id="cpBtn">Copiar código</button>
     </div>
-    <p class="instructions">Muestra este código en caja para canjear tu café gratis.</p>
-    <div class="contact">
-      <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
-      <a href="https://maps.google.com/?q=Avda.+Errazuriz+620,+Retiro" target="_blank">📍 Avda. Errazuriz 620</a>
-      <a href="tel:+56944572336">📞 +569 4457 2336</a>
-    </div>
-    <p class="footer-note">${CONFIG.cafeName} · promoción de visitas</p>
-  `;
-  const btn = document.getElementById('copyBtn');
-  if(btn){
-    btn.addEventListener('click', async ()=>{
-      try{
-        await navigator.clipboard.writeText(code);
-        btn.textContent = '¡Copiado!';
-        setTimeout(()=>{btn.textContent='Copiar código';}, 1800);
-      }catch(e){}
-    });
-  }
+    <p class="sub">Muestra este código en caja para canjear tu café gratis.</p>
+    ${contact()}
+    <p class="fnote">${C.name} · promoción de visitas</p>`;
+  document.getElementById('cpBtn').addEventListener('click',async()=>{
+    try{await navigator.clipboard.writeText(code);
+      document.getElementById('cpBtn').textContent='¡Copiado!';
+      setTimeout(()=>{document.getElementById('cpBtn').textContent='Copiar código';},1800);
+    }catch(e){}
+  });
 }
 
 function renderCooldown(){
-  app.innerHTML = `
-    <p class="eyebrow">${CONFIG.cafeName}</p>
+  app.innerHTML=`
+    <p class="eyebrow">${C.name}</p>
     <h1>Ya registramos tu visita ☕</h1>
-    <p class="sub">Vuelve a escanear el código la próxima vez que nos visites para seguir participando.</p>
-    <div class="contact">
-      <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
-      <a href="https://maps.google.com/?q=Avda.+Errazuriz+620,+Retiro" target="_blank">📍 Avda. Errazuriz 620</a>
-      <a href="tel:+56944572336">📞 +569 4457 2336</a>
-    </div>
-  `;
+    <p class="sub" style="margin-top:12px;">Vuelve a escanear en tu próxima visita para seguir participando.</p>
+    ${contact()}`;
 }
 
 function renderError(){
-  app.innerHTML = `
-    <p class="eyebrow">${CONFIG.cafeName}</p>
-    <h1>No pudimos registrar tu visita</h1>
-    <p class="sub">Intenta escanear el código nuevamente en un momento.</p>
-  `;
+  app.innerHTML=`
+    <p class="eyebrow">${C.name}</p>
+    <h1>Error al registrar</h1>
+    <p class="sub" style="margin-top:10px;">Intenta escanear el código nuevamente en un momento.</p>`;
 }
 
-function generateCode(count){
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let suffix = '';
-  for(let i=0;i<4;i++) suffix += chars[Math.floor(Math.random()*chars.length)];
-  return `CAFE-${count}-${suffix}`;
+function genCode(n){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s='';for(let i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];
+  return`CAFE-${n}-${s}`;
 }
 
-function sendAlert(count, code){
-  fetch(`https://ntfy.sh/${CONFIG.ntfyTopic}`, {
-    method:'POST',
-    body:`Nuevo ganador - Visita #${count} - Codigo: ${code}`,
-    headers:{ 'Title':'Ganador de cafe', 'Tags':'tada' }
+function sendAlert(n,code){
+  fetch(`https://ntfy.sh/${C.ntfy}`,{method:'POST',
+    body:`Ganador visita #${n} - Codigo: ${code}`,
+    headers:{'Title':'🎉 Ganador Muley Coffee','Tags':'tada'}
   }).catch(()=>{});
 }
 
 async function getRecord(){
-  const res = await fetch(API + "/latest", {
-    headers:{ 'X-Master-Key': CONFIG.masterKey, 'X-Bin-Meta': 'false' }
-  });
-  if(!res.ok) throw new Error('read failed');
-  const data = await res.json();
-  if(typeof data.count !== 'number') data.count = 0;
-  if(!data.winners || typeof data.winners !== 'object') data.winners = {};
-  if(!Array.isArray(data.visits)) data.visits = [];
-  return data;
+  const r=await fetch(API+"/latest",{headers:{'X-Master-Key':C.key,'X-Bin-Meta':'false'}});
+  if(!r.ok)throw new Error('read');
+  const d=await r.json();
+  if(typeof d.count!=='number')d.count=0;
+  if(!d.winners)d.winners={};
+  if(!Array.isArray(d.visits))d.visits=[];
+  if(!d.customers)d.customers={};
+  return d;
 }
 
-function getDevice(){
-  const ua = navigator.userAgent || '';
-  if(/android/i.test(ua)) return 'Android';
-  if(/iphone|ipad|ipod/i.test(ua)) return 'iPhone';
-  return 'Otro';
+async function putRecord(d){
+  const r=await fetch(API,{method:'PUT',
+    headers:{'Content-Type':'application/json','X-Master-Key':C.key},
+    body:JSON.stringify(d)});
+  if(!r.ok)throw new Error('write');
 }
 
 async function getCity(){
-  try{
-    const res = await fetch('https://ipapi.co/json/');
-    if(!res.ok) return 'Desconocida';
-    const geo = await res.json();
-    if(geo && geo.city){
-      return geo.region ? `${geo.city}, ${geo.region}` : geo.city;
-    }
-    return 'Desconocida';
-  }catch(e){
-    return 'Desconocida';
-  }
+  try{const r=await fetch('https://ipapi.co/json/');
+    if(!r.ok)return'Desconocida';
+    const g=await r.json();
+    return g.city?(g.region?`${g.city}, ${g.region}`:g.city):'Desconocida';
+  }catch{return'Desconocida';}
 }
 
-async function putRecord(record){
-  const res = await fetch(API, {
-    method:'PUT',
-    headers:{ 'Content-Type':'application/json', 'X-Master-Key': CONFIG.masterKey },
-    body: JSON.stringify(record)
-  });
-  if(!res.ok) throw new Error('write failed');
+function getDevice(){
+  const u=navigator.userAgent||'';
+  if(/android/i.test(u))return'Android';
+  if(/iphone|ipad/i.test(u))return'iPhone';
+  return'Otro';
 }
-
-const COOLDOWN_KEY = 'muley-coffee-last-visit';
 
 async function main(){
-  // evitar que el mismo navegador/celular sume varias visitas seguidas
+  // cooldown
   try{
-    const last = localStorage.getItem(COOLDOWN_KEY);
-    if(last){
-      const elapsedMs = Date.now() - parseInt(last, 10);
-      if(!isNaN(elapsedMs) && elapsedMs < CONFIG.cooldownMinutes * 60 * 1000){
-        renderCooldown();
-        return;
-      }
-    }
-  }catch(e){ /* si el navegador bloquea localStorage, seguimos sin cooldown */ }
+    const last=localStorage.getItem(CD_KEY);
+    if(last&&(Date.now()-parseInt(last))<C.cooldown*60*1000){renderCooldown();return;}
+  }catch(e){}
 
-  let record, count;
-  try{
-    record = await getRecord();
-    count = record.count + 1;
-    record.count = count;
-  }catch(e){
-    renderError();
-    return;
-  }
+  let rec,count;
+  try{rec=await getRecord();count=rec.count+1;rec.count=count;}
+  catch(e){renderError();return;}
 
-  try{ localStorage.setItem(COOLDOWN_KEY, String(Date.now())); }catch(e){}
+  try{localStorage.setItem(CD_KEY,String(Date.now()));}catch(e){}
 
-  const city = await getCity();
-  record.visits.push({ ts: Date.now(), city, device: getDevice() });
-  if(record.visits.length > 2000) record.visits = record.visits.slice(-2000);
+  const city=await getCity();
+  rec.visits.push({ts:Date.now(),city,device:getDevice()});
+  if(rec.visits.length>2000)rec.visits=rec.visits.slice(-2000);
 
-  const isWinner = count % CONFIG.premioCada === 0;
-  let code = null;
+  const isWinner=count%C.cada===0;
+  let code=null;
   if(isWinner){
-    code = generateCode(count);
-    record.winners[code] = { visitNumber: count, ts: Date.now(), redeemed:false, redeemedAt:null };
+    code=genCode(count);
+    rec.winners[code]={visitNumber:count,ts:Date.now(),redeemed:false,redeemedAt:null};
   }
 
-  try{
-    await putRecord(record);
-  }catch(e){
-    renderError();
-    return;
-  }
+  try{await putRecord(rec);}catch(e){renderError();return;}
 
-  if(isWinner){
-    sendAlert(count, code);
-    renderWinner(count, code);
-  }else{
-    renderParticipant(count);
-  }
+  if(isWinner){sendAlert(count,code);renderWinner(count,code);}
+  else{renderParticipant(count);}
 }
 
 main();
