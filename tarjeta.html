@@ -32,7 +32,10 @@ button.wabtn{
   font-size:.9rem;padding:12px;border-radius:14px;cursor:pointer;
   background:#25D366;color:#fff;margin-top:10px;display:flex;align-items:center;
   justify-content:center;gap:8px;}
-.stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:20px 0 10px;}
+.stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0 8px;}
+.stamp.gift{border:2px solid var(--card);background:linear-gradient(135deg,var(--card),var(--car));opacity:.75;}
+.stamp.gift::after{content:'🎁';font-size:.9rem;}
+.gift-note{font-size:.75rem;color:var(--card);font-weight:600;margin-bottom:4px;}
 .stamp{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:1.2rem;border:2px dashed var(--crmd);background:var(--crm);transition:all .4s ease;}
 .stamp.on{border:2px solid var(--car);background:var(--car);box-shadow:0 3px 10px -3px rgba(193,129,47,.5);}
@@ -82,9 +85,16 @@ function contactHTML(){return`<div class="contact">
   <a href="tel:+56944572336">📞 +569 4457 2336</a>
 </div>`;}
 
+const GIFT_STAMPS=2; // sellos de regalo visual (incluidos en el total de 10)
+
 function stampsHTML(filled,total){
+  // total=10: primeros 2 = regalo, restantes 8 = reales
   let h='<div class="stamps">';
-  for(let i=0;i<total;i++)h+=`<div class="stamp${i<filled?' on':''}"></div>`;
+  for(let i=0;i<total;i++){
+    const isGift=i<GIFT_STAMPS;
+    const isFilled=isGift||(i-GIFT_STAMPS)<filled;
+    h+=`<div class="stamp${isFilled?' on':''}${isGift?' gift':''}"></div>`;
+  }
   return h+'</div>';
 }
 
@@ -126,8 +136,9 @@ function renderCard(phone,cust){
     <p class="eyebrow">${C.name}</p>
     <h1>Mi tarjeta ☕</h1>
     ${nombre?`<p class="nombre-tag">Hola, ${nombre} 👋</p>`:`<p style="font-size:.78rem;color:var(--esps);margin-bottom:6px;">${displayPhone(phone)}</p>`}
+    <p class="gift-note">🎁 2 sellos de bienvenida + tus ${stamps} de ${C.sellosPremio}</p>
     ${stampsHTML(stamps,C.sellosPremio)}
-    <p class="plbl">${stamps} de ${C.sellosPremio} cafés</p>
+    <p class="plbl">${stamps} de ${C.sellosPremio} cafés comprados</p>
     <div class="pbar-wrap"><div class="pbar" id="pb"></div></div>
     ${stamps===0
       ?`<p class="sub">¡Empieza hoy! Cada café que compres suma un sello 🎉</p>`
