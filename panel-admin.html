@@ -105,6 +105,11 @@ label{font-size:.82rem;color:var(--esps);display:block;margin-bottom:4px;}
 
   <!-- Tab 3: Clientes -->
   <div id="tab3" style="display:none;">
+    <div class="card" style="margin-bottom:10px;">
+      <p style="font-size:.82rem;color:var(--esps);margin-bottom:10px;">Si ves números duplicados o mal formateados, toca el botón para limpiarlos.</p>
+      <button class="primary" id="limpiarBtn" style="background:var(--card);">🧹 Limpiar y unificar duplicados</button>
+      <div id="limpiarResult" style="margin-top:10px;font-size:.85rem;"></div>
+    </div>
     <div class="card">
       <p style="font-size:.82rem;color:var(--esps);margin-bottom:10px;">Toca un cliente para ir directo a sus sellos.</p>
       <button class="toggle" id="toggleClientes">Ver todos los clientes ▾</button>
@@ -141,7 +146,11 @@ function norm(raw){
   return d; // "9XXXXXXXX"
 }
 
-function displayPhone(key){return'+56 '+key.slice(0,1)+' '+key.slice(1,5)+' '+key.slice(5);}
+function displayPhone(key){
+  const n=norm(key); // normalizar primero
+  if(n.length>=9)return'+56 '+n.slice(0,1)+' '+n.slice(1,5)+' '+n.slice(5);
+  return key; // fallback si el formato es raro
+}
 
 // ── API ────────────────────────────────────────────────────────────────────
 async function getRecord(){
@@ -457,6 +466,58 @@ async function loadActividad(){
       </div>`).join('')}`;
   }catch(e){el.innerHTML='<p style="color:var(--rst);font-size:.85rem;">Error al cargar.</p>';}
 }
+
+// ── Limpiar duplicados ─────────────────────────────────────────────────────
+document.getElementById('limpiarBtn').addEventListener('click',async()=>{
+  const res=document.getElementById('limpiarResult');
+  res.innerHTML='Analizando…';
+  try{
+    const rec=await getRecord();
+    const old=rec.customers;
+    const merged={};
+
+    // Para cada cliente existente, normalizar su clave y fusionar si hay duplicados
+    for(const[key,cust] of Object.entries(old)){
+      const normKey=norm(key);
+      if(!normKey||normKey.length<8){continue;} // ignorar claves inválidas
+      if(!merged[normKey]){
+        // primer registro con esta clave normalizada
+        merged[normKey]={
+          phone:normKey,
+          name:cust.name||'',
+          stamps:cust.stamps||0,
+          totalPrizesWon:cust.totalPrizesWon||0,
+          prizes:cust.prizes||[],
+          createdAt:cust.createdAt||Date.now(),
+          lastVisit:cust.lastVisit||null
+        };
+      }else{
+        // fusionar con el existente: quedarse con los mejores datos
+        const ex=merged[normKey];
+        ex.stamps=Math.max(ex.stamps,cust.stamps||0);
+        ex.totalPrizesWon=Math.max(ex.totalPrizesWon,cust.totalPrizesWon||0);
+        ex.name=ex.name||cust.name||'';
+        // fusionar premios sin duplicar códigos
+        const codsExist=new Set((ex.prizes||[]).map(p=>p.code));
+        for(const p of (cust.prizes||[])){
+          if(!codsExist.has(p.code)){ex.prizes.push(p);codsExist.add(p.code);}
+        }
+        ex.lastVisit=Math.max(ex.lastVisit||0,cust.lastVisit||0)||null;
+      }
+    }
+
+    const antesN=Object.keys(old).length;
+    const despuesN=Object.keys(merged).length;
+    rec.customers=merged;
+    await putRecord(rec);
+    await loadStats();
+    res.innerHTML=`<span style="color:var(--grn);font-weight:600;">✓ Listo.</span> Se unificaron ${antesN} registros en ${despuesN} clientes únicos.`;
+    // recargar lista
+    await loadClientes();
+  }catch(e){
+    res.innerHTML='<span style="color:var(--rst);">Error al limpiar. Intenta de nuevo.</span>';
+  }
+});
 
 document.getElementById('toggleVisitas').addEventListener('click',e=>{
   const el=document.getElementById('visitasList');
