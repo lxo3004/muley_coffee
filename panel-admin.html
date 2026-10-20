@@ -41,6 +41,8 @@ button.sm{border:none;font-family:'Inter',sans-serif;font-weight:600;font-size:.
 .stamp{aspect-ratio:1;border-radius:50%;border:2px dashed var(--crmd);background:var(--crm);}
 .stamp.on{border:2px solid var(--car);background:var(--car);}
 .stamp.on::after{content:'☕';display:flex;align-items:center;justify-content:center;font-size:.95rem;height:100%;}
+.stamp.gift{border:2px solid var(--card);background:linear-gradient(135deg,var(--card),var(--car));opacity:.75;}
+.stamp.gift::after{content:'🎁';display:flex;align-items:center;justify-content:center;font-size:.85rem;height:100%;}
 .stats{display:flex;justify-content:space-around;text-align:center;font-size:.78rem;color:var(--esps);}
 .stats strong{display:block;font-size:1.25rem;color:var(--esp);font-family:'Fraunces',serif;}
 .pin-screen{text-align:center;padding-top:50px;}
@@ -129,8 +131,9 @@ label{font-size:.82rem;color:var(--esps);display:block;margin-bottom:4px;}
 
 <script>
 const PIN="2304";
+const GIFT_STAMPS=2; // siempre visibles, no se agregan manualmente
 const C={
-  cada:50,sellosPremio:8,// 8 reales + 2 regalo visual = 10 totales en tarjeta
+  cada:50,sellosPremio:8, // 8 reales + 2 regalo = 10 totales
   ntfy:"cafe-retiro-luis-7gx2k9",
   bin:"6a35da17f5f4af5e2912180b",
   key:"$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW"
@@ -238,8 +241,14 @@ document.getElementById('selloPhone').addEventListener('keydown',e=>{
 });
 
 function stampsHTML(filled,total){
+  // total=8 reales + 2 regalo = 10 slots visibles
+  const displayTotal=total+GIFT_STAMPS;
   let h='<div class="stamps">';
-  for(let i=0;i<total;i++)h+=`<div class="stamp${i<filled?' on':''}"></div>`;
+  for(let i=0;i<displayTotal;i++){
+    const isGift=i<GIFT_STAMPS;
+    const isFilled=isGift||(i-GIFT_STAMPS)<filled;
+    h+=`<div class="stamp${isFilled?' on':''}${isGift?' gift':''}"></div>`;
+  }
   return h+'</div>';
 }
 
@@ -281,7 +290,7 @@ function renderClienteCard(phone,cust){
         <button class="sm" id="saveNombreBtn">Guardar</button>
       </div>
     </div>
-    <div class="row"><span>Sellos</span><strong>${stamps} / ${C.sellosPremio}</strong></div>
+    <div class="row"><span>Sellos reales</span><strong>${stamps} / ${C.sellosPremio}</strong></div>
     <div class="row"><span>Premios ganados</span><strong>${cust.totalPrizesWon||0}</strong></div>
     ${hasPend?`<div class="row"><span>Estado</span><span class="badge warn">Premio pendiente</span></div>`:''}
     ${stampsHTML(stamps,C.sellosPremio)}
