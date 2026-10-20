@@ -19,10 +19,10 @@ input:focus{outline:2px solid var(--car);border-color:var(--car);}
 button.primary{width:100%;border:none;font-family:'Inter',sans-serif;font-weight:600;
   font-size:.93rem;padding:12px;border-radius:12px;cursor:pointer;background:var(--car);color:var(--ppr);}
 button.primary:active{background:var(--card);}
-button.danger{width:100%;border:1.5px solid var(--rst);font-family:'Inter',sans-serif;font-weight:600;
-  font-size:.9rem;padding:11px;border-radius:12px;cursor:pointer;background:transparent;color:var(--rst);margin-top:8px;}
 button.ghost{background:none;border:none;color:var(--card);font-size:.85rem;
   cursor:pointer;font-family:'Inter',sans-serif;margin-top:8px;text-decoration:underline;padding:0;width:auto;}
+button.sm{border:none;font-family:'Inter',sans-serif;font-weight:600;font-size:.8rem;
+  padding:7px 14px;border-radius:999px;cursor:pointer;background:var(--car);color:var(--ppr);}
 .tabs{display:flex;gap:8px;margin-bottom:14px;}
 .tab{flex:1;padding:10px 6px;border-radius:12px;border:1.5px solid var(--crmd);
   background:var(--ppr);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;color:var(--esps);}
@@ -35,15 +35,18 @@ button.ghost{background:none;border:none;color:var(--card);font-size:.85rem;
 .row{display:flex;justify-content:space-between;align-items:center;
   padding:8px 0;border-bottom:1px solid var(--crmd);font-size:.83rem;}
 .row:last-child{border-bottom:none;}
+.row.clickable{cursor:pointer;}
+.row.clickable:hover{background:rgba(193,129,47,.05);border-radius:8px;padding-left:6px;}
 .stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0;}
 .stamp{aspect-ratio:1;border-radius:50%;border:2px dashed var(--crmd);background:var(--crm);}
 .stamp.on{border:2px solid var(--car);background:var(--car);}
 .stamp.on::after{content:'☕';display:flex;align-items:center;justify-content:center;font-size:.95rem;height:100%;}
-.stats{display:flex;justify-content:space-around;text-align:center;font-size:.82rem;color:var(--esps);}
-.stats strong{display:block;font-size:1.3rem;color:var(--esp);font-family:'Fraunces',serif;}
+.stats{display:flex;justify-content:space-around;text-align:center;font-size:.78rem;color:var(--esps);}
+.stats strong{display:block;font-size:1.25rem;color:var(--esp);font-family:'Fraunces',serif;}
 .pin-screen{text-align:center;padding-top:50px;}
 .toggle{background:none;border:none;color:var(--card);font-size:.83rem;text-decoration:underline;padding:0;cursor:pointer;}
 label{font-size:.82rem;color:var(--esps);display:block;margin-bottom:4px;}
+.name-badge{font-size:.78rem;color:var(--card);font-weight:600;}
 </style>
 </head>
 <body>
@@ -64,17 +67,15 @@ label{font-size:.82rem;color:var(--esps);display:block;margin-bottom:4px;}
   <span class="eyebrow">Muley Coffee</span>
   <h1 style="margin-bottom:14px;">Panel Admin</h1>
 
-  <!-- Stats -->
   <div class="card">
     <div class="stats">
-      <div>Visitas totales<strong id="stVisitas">—</strong></div>
+      <div>Visitas QR<strong id="stVisitas">—</strong></div>
       <div>Clientes<strong id="stClientes">—</strong></div>
-      <div>Premios QR<strong id="stPremiosQR">—</strong></div>
-      <div>Premios fiel.<strong id="stPremiosFiel">—</strong></div>
+      <div>Premios QR<strong id="stQR">—</strong></div>
+      <div>Premios fiel.<strong id="stFiel">—</strong></div>
     </div>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" id="t1" onclick="showTab(1)">Sello</button>
     <button class="tab" id="t2" onclick="showTab(2)">Canjear</button>
@@ -86,7 +87,7 @@ label{font-size:.82rem;color:var(--esps);display:block;margin-bottom:4px;}
   <div id="tab1">
     <div class="card">
       <label for="selloPhone">Teléfono del cliente</label>
-      <input type="tel" id="selloPhone" placeholder="+56 9 XXXX XXXX" inputmode="tel">
+      <input type="tel" id="selloPhone" placeholder="+56 9 XXXX XXXX o 9 XXXX XXXX" inputmode="tel">
       <button class="primary" id="buscarBtn">Buscar cliente</button>
     </div>
     <div id="selloResult"></div>
@@ -105,6 +106,7 @@ label{font-size:.82rem;color:var(--esps);display:block;margin-bottom:4px;}
   <!-- Tab 3: Clientes -->
   <div id="tab3" style="display:none;">
     <div class="card">
+      <p style="font-size:.82rem;color:var(--esps);margin-bottom:10px;">Toca un cliente para ir directo a sus sellos.</p>
       <button class="toggle" id="toggleClientes">Ver todos los clientes ▾</button>
       <div id="clientesList" style="display:none;margin-top:12px;"></div>
     </div>
@@ -129,26 +131,56 @@ const C={
 };
 const API="https://api.jsonbin.io/v3/b/"+C.bin;
 
-function norm(r){return(r||'').replace(/\s+/g,'').replace(/[^\d+]/g,'');}
+// ── Normalización de teléfono ──────────────────────────────────────────────
+// Almacena siempre como "9XXXXXXXX" (9 dígitos chilenos sin código de país)
+// Así +56944572336, 56944572336, 944572336 son el mismo cliente
+function norm(raw){
+  let d=(raw||'').replace(/\s+/g,'').replace(/[^\d]/g,'');
+  if(d.startsWith('56'))d=d.slice(2);   // quitar 56
+  if(d.startsWith('0'))d=d.slice(1);    // quitar 0 inicial
+  return d; // "9XXXXXXXX"
+}
 
+function displayPhone(key){return'+56 '+key.slice(0,1)+' '+key.slice(1,5)+' '+key.slice(5);}
+
+// ── API ────────────────────────────────────────────────────────────────────
 async function getRecord(){
   const r=await fetch(API+"/latest",{headers:{'X-Master-Key':C.key,'X-Bin-Meta':'false'}});
   if(!r.ok)throw new Error('read');
   const d=await r.json();
+  // garantizar estructura mínima sin borrar datos existentes
   if(typeof d.count!=='number')d.count=0;
-  if(!d.winners)d.winners={};
+  if(!d.winners||typeof d.winners!=='object')d.winners={};
   if(!Array.isArray(d.visits))d.visits=[];
-  if(!d.customers)d.customers={};
+  if(!d.customers||typeof d.customers!=='object')d.customers={};
   return d;
 }
+
 async function putRecord(d){
-  const r=await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':C.key},body:JSON.stringify(d)});
+  // Protección: no guardar si customers está vacío y había datos
+  if(Object.keys(d.customers).length===0&&Object.keys(d.winners).length===0&&d.count===0){
+    throw new Error('Intento de escritura vacía bloqueado');
+  }
+  const r=await fetch(API,{method:'PUT',
+    headers:{'Content-Type':'application/json','X-Master-Key':C.key},
+    body:JSON.stringify(d)});
   if(!r.ok)throw new Error('write');
 }
-function genCode(n){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];return`FIEL-${n}-${s}`;}
-function sendAlert(phone,total,code){fetch(`https://ntfy.sh/${C.ntfy}`,{method:'POST',body:`Premio fidelidad - Tel:${phone} Premio#${total} - ${code}`,headers:{'Title':'🎉 Premio Fidelidad','Tags':'tada'}}).catch(()=>{});}
 
-// PIN
+function genCode(n){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s='';for(let i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];
+  return`FIEL-${n}-${s}`;
+}
+
+function sendAlert(phone,total,code){
+  fetch(`https://ntfy.sh/${C.ntfy}`,{method:'POST',
+    body:`Premio fidelidad - ${displayPhone(phone)} Premio#${total} - ${code}`,
+    headers:{'Title':'🎉 Premio Fidelidad','Tags':'tada'}
+  }).catch(()=>{});
+}
+
+// ── PIN ────────────────────────────────────────────────────────────────────
 document.getElementById('pinBtn').addEventListener('click',()=>{
   if(document.getElementById('pinInput').value===PIN){
     document.getElementById('pinScreen').style.display='none';
@@ -156,34 +188,44 @@ document.getElementById('pinBtn').addEventListener('click',()=>{
     loadStats();
   }else{document.getElementById('pinErr').style.display='block';}
 });
-document.getElementById('pinInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('pinBtn').click();});
+document.getElementById('pinInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter')document.getElementById('pinBtn').click();
+});
 
-// Tabs
-function showTab(n){
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function showTab(n,prefillPhone){
   for(let i=1;i<=4;i++){
     document.getElementById(`tab${i}`).style.display=i===n?'block':'none';
     document.getElementById(`t${i}`).classList.toggle('active',i===n);
   }
   if(n===3)loadClientes();
   if(n===4)loadActividad();
+  if(n===1&&prefillPhone){
+    document.getElementById('selloPhone').value=displayPhone(prefillPhone);
+    buscarCliente();
+  }
 }
 
-// Stats
+// ── Stats ──────────────────────────────────────────────────────────────────
 async function loadStats(){
   try{
     const d=await getRecord();
     document.getElementById('stVisitas').textContent=d.count;
     document.getElementById('stClientes').textContent=Object.keys(d.customers).length;
-    document.getElementById('stPremiosQR').textContent=Object.values(d.winners).filter(w=>w.redeemed).length+'/'+Object.keys(d.winners).length;
+    const qrTotal=Object.keys(d.winners).length;
+    const qrCanj=Object.values(d.winners).filter(w=>w.redeemed).length;
+    document.getElementById('stQR').textContent=qrCanj+'/'+qrTotal;
     let tf=0,tp=0;
     Object.values(d.customers).forEach(c=>{(c.prizes||[]).forEach(p=>{tp++;if(p.redeemed)tf++;});});
-    document.getElementById('stPremiosFiel').textContent=tf+'/'+tp;
+    document.getElementById('stFiel').textContent=tf+'/'+tp;
   }catch(e){}
 }
 
-// Tab 1: Sello
+// ── Tab 1: Sello ───────────────────────────────────────────────────────────
 document.getElementById('buscarBtn').addEventListener('click',buscarCliente);
-document.getElementById('selloPhone').addEventListener('keydown',e=>{if(e.key==='Enter')buscarCliente();});
+document.getElementById('selloPhone').addEventListener('keydown',e=>{
+  if(e.key==='Enter')buscarCliente();
+});
 
 function stampsHTML(filled,total){
   let h='<div class="stamps">';
@@ -193,17 +235,21 @@ function stampsHTML(filled,total){
 
 async function buscarCliente(){
   const phone=norm(document.getElementById('selloPhone').value);
-  if(phone.length<8){document.getElementById('selloPhone').style.borderColor='var(--card)';return;}
+  if(phone.length<8){
+    document.getElementById('selloPhone').style.borderColor='var(--card)';return;
+  }
   const res=document.getElementById('selloResult');
   res.innerHTML='<div class="card"><p style="font-size:.9rem;">Buscando…</p></div>';
   try{
     const rec=await getRecord();
     if(!rec.customers[phone]){
-      rec.customers[phone]={phone,stamps:0,totalPrizesWon:0,prizes:[],createdAt:Date.now()};
+      rec.customers[phone]={phone,name:'',stamps:0,totalPrizesWon:0,prizes:[],createdAt:Date.now()};
       await putRecord(rec);
     }
     renderClienteCard(phone,rec.customers[phone]);
-  }catch(e){res.innerHTML='<div class="card"><p style="color:var(--rst);">Error al buscar. Intenta de nuevo.</p></div>';}
+  }catch(e){
+    res.innerHTML='<div class="card"><p style="color:var(--rst);">Error al buscar. Intenta de nuevo.</p></div>';
+  }
 }
 
 function renderClienteCard(phone,cust){
@@ -211,27 +257,56 @@ function renderClienteCard(phone,cust){
   const stamps=cust.stamps||0;
   const rem=C.sellosPremio-stamps;
   const hasPend=(cust.prizes||[]).some(p=>!p.redeemed);
+  const nombre=cust.name||'';
   res.innerHTML=`<div class="card">
-    <div class="row"><span>Teléfono</span><strong>${phone}</strong></div>
+    <div class="row">
+      <span>Teléfono</span>
+      <strong>${displayPhone(phone)}</strong>
+    </div>
+    <div class="row" style="gap:8px;">
+      <span>Nombre</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input id="nombreInput" value="${nombre}" placeholder="Sin nombre"
+          style="width:140px;margin:0;padding:6px 10px;font-size:.83rem;">
+        <button class="sm" id="saveNombreBtn">Guardar</button>
+      </div>
+    </div>
     <div class="row"><span>Sellos</span><strong>${stamps} / ${C.sellosPremio}</strong></div>
     <div class="row"><span>Premios ganados</span><strong>${cust.totalPrizesWon||0}</strong></div>
     ${hasPend?`<div class="row"><span>Estado</span><span class="badge warn">Premio pendiente</span></div>`:''}
     ${stampsHTML(stamps,C.sellosPremio)}
-    ${rem>0?`<button class="primary" id="addBtn">+ Agregar sello (faltan ${rem})</button>`
-      :`<p style="text-align:center;font-size:.9rem;color:var(--grn);font-weight:600;margin:8px 0;">¡Tarjeta completa! → Canjear en pestaña Canjear</p>`}
+    ${rem>0
+      ?`<button class="primary" id="addBtn">+ Agregar sello (faltan ${rem})</button>`
+      :`<p style="text-align:center;font-size:.9rem;color:var(--grn);font-weight:600;margin:8px 0;">¡Tarjeta completa! → Canjear en pestaña Canjear</p>`
+    }
     <button class="ghost" id="clearBtn">← Buscar otro</button>
   </div>`;
+
+  // Guardar nombre
+  document.getElementById('saveNombreBtn').addEventListener('click',async()=>{
+    const nuevoNombre=document.getElementById('nombreInput').value.trim();
+    try{
+      const fresh=await getRecord();
+      fresh.customers[phone].name=nuevoNombre;
+      await putRecord(fresh);
+      document.getElementById('saveNombreBtn').textContent='✓ Guardado';
+      setTimeout(()=>{document.getElementById('saveNombreBtn').textContent='Guardar';},1500);
+    }catch(e){}
+  });
+
   document.getElementById('clearBtn').addEventListener('click',()=>{
     document.getElementById('selloResult').innerHTML='';
     document.getElementById('selloPhone').value='';
   });
+
   const ab=document.getElementById('addBtn');
   if(ab)ab.addEventListener('click',async()=>{
     ab.textContent='Guardando…';ab.disabled=true;
     try{
       const fresh=await getRecord();
       const c=fresh.customers[phone];
-      c.stamps=(c.stamps||0)+1;c.lastVisit=Date.now();
+      c.stamps=(c.stamps||0)+1;
+      c.lastVisit=Date.now();
       let wonCode=null;
       if(c.stamps>=C.sellosPremio){
         c.totalPrizesWon=(c.totalPrizesWon||0)+1;
@@ -246,7 +321,7 @@ function renderClienteCard(phone,cust){
         sendAlert(phone,c.totalPrizesWon,wonCode);
         res.innerHTML=`<div class="card" style="text-align:center;">
           <p style="font-size:1rem;font-weight:600;color:var(--grn);margin-bottom:8px;">🎉 ¡Tarjeta completa!</p>
-          <p style="font-size:.85rem;color:var(--esps);">Premio para ${phone}:</p>
+          <p style="font-size:.85rem;color:var(--esps);">Premio para ${displayPhone(phone)}${c.name?' ('+c.name+')':''}:</p>
           <p style="font-family:monospace;font-weight:700;font-size:1.2rem;margin:10px 0;">${wonCode}</p>
           <button class="ghost" id="clearBtn2">← Buscar otro</button>
         </div>`;
@@ -254,12 +329,18 @@ function renderClienteCard(phone,cust){
           document.getElementById('selloResult').innerHTML='';
           document.getElementById('selloPhone').value='';
         });
-      }else{renderClienteCard(phone,fresh.customers[phone]);}
-    }catch(e){ab.textContent='+ Agregar sello';ab.disabled=false;}
+      }else{
+        renderClienteCard(phone,fresh.customers[phone]);
+      }
+    }catch(e){
+      ab.textContent='+ Agregar sello';
+      ab.disabled=false;
+      res.innerHTML+='<p style="color:var(--rst);font-size:.85rem;margin-top:8px;">Error al guardar. Intenta de nuevo.</p>';
+    }
   });
 }
 
-// Tab 2: Canjear
+// ── Tab 2: Canjear ─────────────────────────────────────────────────────────
 document.getElementById('checkBtn').addEventListener('click',async()=>{
   const raw=(document.getElementById('codeInput').value||'').trim().toUpperCase();
   const res=document.getElementById('codeResult');
@@ -267,55 +348,85 @@ document.getElementById('checkBtn').addEventListener('click',async()=>{
   res.innerHTML='Buscando…';
   try{
     const rec=await getRecord();
-    // check QR winners
+    // Buscar en premios QR
     if(rec.winners[raw]){
       const w=rec.winners[raw];
-      if(w.redeemed){res.innerHTML=`<span class="badge bad">Ya canjeado</span><p style="font-size:.82rem;margin-top:6px;">Canjeado el ${new Date(w.redeemedAt).toLocaleString('es-CL')}</p>`;return;}
+      if(w.redeemed){
+        res.innerHTML=`<span class="badge bad">Ya canjeado</span>
+          <p style="font-size:.82rem;margin-top:6px;">Canjeado el ${new Date(w.redeemedAt).toLocaleString('es-CL')}</p>`;
+        return;
+      }
       res.innerHTML=`<span class="badge ok">Válido · visita QR N.º ${w.visitNumber}</span>
         <p style="font-size:.82rem;margin-top:6px;">Ganado el ${new Date(w.ts).toLocaleString('es-CL')}</p>
         <button class="primary" id="redeemBtn" style="margin-top:10px;">Marcar como canjeado ✓</button>`;
       document.getElementById('redeemBtn').addEventListener('click',async()=>{
-        try{const f=await getRecord();f.winners[raw].redeemed=true;f.winners[raw].redeemedAt=Date.now();
-          await putRecord(f);loadStats();res.innerHTML='<span class="badge ok">Canjeado ✓</span>';}
-        catch(e){res.innerHTML+='<p style="color:var(--rst);">Error, intenta de nuevo.</p>';}
+        try{
+          const f=await getRecord();
+          f.winners[raw].redeemed=true;f.winners[raw].redeemedAt=Date.now();
+          await putRecord(f);loadStats();
+          res.innerHTML='<span class="badge ok">Canjeado correctamente ✓</span>';
+        }catch(e){res.innerHTML+='<p style="color:var(--rst);">Error, intenta de nuevo.</p>';}
       });
       return;
     }
-    // check fidelidad prizes
+    // Buscar en premios de fidelidad
     let found=null,foundPhone=null;
-    for(const[ph,c]of Object.entries(rec.customers)){
+    for(const[ph,c] of Object.entries(rec.customers)){
       const p=(c.prizes||[]).find(x=>x.code===raw);
       if(p){found=p;foundPhone=ph;break;}
     }
     if(!found){res.innerHTML='<span class="badge bad">Código no encontrado</span>';return;}
-    if(found.redeemed){res.innerHTML=`<span class="badge bad">Ya canjeado</span><p style="font-size:.82rem;margin-top:6px;">Canjeado el ${new Date(found.redeemedAt).toLocaleString('es-CL')}</p>`;return;}
-    res.innerHTML=`<span class="badge ok">Válido · tarjeta de ${foundPhone}</span>
+    if(found.redeemed){
+      res.innerHTML=`<span class="badge bad">Ya canjeado</span>
+        <p style="font-size:.82rem;margin-top:6px;">Canjeado el ${new Date(found.redeemedAt).toLocaleString('es-CL')}</p>`;
+      return;
+    }
+    const nombre=rec.customers[foundPhone].name||'';
+    res.innerHTML=`<span class="badge ok">Válido · ${displayPhone(foundPhone)}${nombre?' ('+nombre+')':''}</span>
       <p style="font-size:.82rem;margin-top:6px;">Ganado el ${new Date(found.ts).toLocaleString('es-CL')}</p>
       <button class="primary" id="redeemBtn2" style="margin-top:10px;">Marcar como canjeado ✓</button>`;
     document.getElementById('redeemBtn2').addEventListener('click',async()=>{
-      try{const f=await getRecord();const p=(f.customers[foundPhone].prizes||[]).find(x=>x.code===raw);
-        p.redeemed=true;p.redeemedAt=Date.now();await putRecord(f);loadStats();
-        res.innerHTML='<span class="badge ok">Canjeado ✓</span>';}
-      catch(e){res.innerHTML+='<p style="color:var(--rst);">Error, intenta de nuevo.</p>';}
+      try{
+        const f=await getRecord();
+        const p=(f.customers[foundPhone].prizes||[]).find(x=>x.code===raw);
+        p.redeemed=true;p.redeemedAt=Date.now();
+        await putRecord(f);loadStats();
+        res.innerHTML='<span class="badge ok">Canjeado correctamente ✓</span>';
+      }catch(e){res.innerHTML+='<p style="color:var(--rst);">Error, intenta de nuevo.</p>';}
     });
   }catch(e){res.innerHTML='<span class="badge bad">Error al verificar</span>';}
 });
 
-// Tab 3: Clientes
+// ── Tab 3: Clientes ────────────────────────────────────────────────────────
 async function loadClientes(){
   const list=document.getElementById('clientesList');
+  if(list.style.display==='none')return;
   list.innerHTML='Cargando…';
   try{
     const rec=await getRecord();
     const cls=Object.values(rec.customers).sort((a,b)=>(b.lastVisit||0)-(a.lastVisit||0));
     if(!cls.length){list.innerHTML='<p style="font-size:.85rem;color:var(--esps);">Sin clientes aún.</p>';return;}
-    list.innerHTML=cls.map(c=>`<div class="row">
-      <span>${c.phone}</span>
-      <span>${c.stamps||0}/${C.sellosPremio}</span>
-      <span class="badge ${(c.prizes||[]).some(p=>!p.redeemed)?'warn':'ok'}">${(c.prizes||[]).some(p=>!p.redeemed)?'Premio pendiente':'OK'}</span>
-    </div>`).join('');
+    list.innerHTML=cls.map(c=>`
+      <div class="row clickable" onclick="irASellos('${c.phone}')">
+        <div>
+          <div style="font-weight:600;">${displayPhone(c.phone)}</div>
+          ${c.name?`<div class="name-badge">${c.name}</div>`:''}
+        </div>
+        <span>${c.stamps||0}/${C.sellosPremio} ☕</span>
+        <span class="badge ${(c.prizes||[]).some(p=>!p.redeemed)?'warn':'ok'}">
+          ${(c.prizes||[]).some(p=>!p.redeemed)?'Premio pendiente':'OK'}
+        </span>
+      </div>`).join('');
   }catch(e){list.innerHTML='<p style="color:var(--rst);font-size:.85rem;">Error al cargar.</p>';}
 }
+
+// Al hacer clic en un cliente → ir directo a su tarjeta en Tab 1
+function irASellos(phone){
+  document.getElementById('selloPhone').value=displayPhone(phone);
+  showTab(1);
+  setTimeout(buscarCliente,100);
+}
+
 document.getElementById('toggleClientes').addEventListener('click',e=>{
   const el=document.getElementById('clientesList');
   const h=el.style.display==='none';
@@ -324,7 +435,7 @@ document.getElementById('toggleClientes').addEventListener('click',e=>{
   if(h)loadClientes();
 });
 
-// Tab 4: Actividad
+// ── Tab 4: Actividad ───────────────────────────────────────────────────────
 async function loadActividad(){
   const el=document.getElementById('visitasList');
   if(el.style.display==='none')return;
@@ -337,12 +448,16 @@ async function loadActividad(){
     const top=Object.entries(cities).sort((a,b)=>b[1]-a[1]).slice(0,6);
     const recent=vs.slice(-20).reverse();
     el.innerHTML=`
-      <p style="font-size:.78rem;color:var(--esps);margin-bottom:6px;font-weight:600;">Ciudades frecuentes</p>
+      <p style="font-size:.78rem;color:var(--esps);margin-bottom:6px;font-weight:600;">Ciudades más frecuentes</p>
       ${top.map(([c,n])=>`<div class="row"><span>${c}</span><strong>${n} visitas</strong></div>`).join('')}
-      <p style="font-size:.78rem;color:var(--esps);margin:14px 0 6px;font-weight:600;">Últimas 20 visitas</p>
-      ${recent.map(v=>`<div class="row"><span>${new Date(v.ts).toLocaleString('es-CL')}</span><span>${v.city||'—'} · ${v.device||'—'}</span></div>`).join('')}`;
+      <p style="font-size:.78rem;color:var(--esps);margin:14px 0 6px;font-weight:600;">Últimas 20 visitas QR</p>
+      ${recent.map(v=>`<div class="row">
+        <span>${new Date(v.ts).toLocaleString('es-CL')}</span>
+        <span>${v.city||'—'} · ${v.device||'—'}</span>
+      </div>`).join('')}`;
   }catch(e){el.innerHTML='<p style="color:var(--rst);font-size:.85rem;">Error al cargar.</p>';}
 }
+
 document.getElementById('toggleVisitas').addEventListener('click',e=>{
   const el=document.getElementById('visitasList');
   const h=el.style.display==='none';

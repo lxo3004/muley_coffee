@@ -20,13 +20,18 @@ h1{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:600;margin:12px 0 4
 p.sub{font-size:.9rem;color:var(--esps);line-height:1.5;margin-top:6px;}
 input{width:100%;font-family:'Inter',sans-serif;font-size:1rem;padding:13px 16px;
   border-radius:14px;border:1.5px solid var(--crmd);background:var(--crm);
-  color:var(--esp);margin:14px 0 10px;text-align:center;}
+  color:var(--esp);margin:10px 0;text-align:center;}
 input:focus{outline:2px solid var(--car);border-color:var(--car);}
 button.primary{width:100%;border:none;font-family:'Inter',sans-serif;font-weight:600;
   font-size:.95rem;padding:13px;border-radius:14px;cursor:pointer;background:var(--car);color:var(--ppr);}
 button.primary:active{background:var(--card);}
 button.ghost{background:none;border:none;color:var(--card);font-size:.85rem;
   cursor:pointer;font-family:'Inter',sans-serif;margin-top:12px;text-decoration:underline;}
+button.wabtn{
+  width:100%;border:none;font-family:'Inter',sans-serif;font-weight:600;
+  font-size:.9rem;padding:12px;border-radius:14px;cursor:pointer;
+  background:#25D366;color:#fff;margin-top:10px;display:flex;align-items:center;
+  justify-content:center;gap:8px;}
 .stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:20px 0 10px;}
 .stamp{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:1.2rem;border:2px dashed var(--crmd);background:var(--crm);transition:all .4s ease;}
@@ -35,15 +40,14 @@ button.ghost{background:none;border:none;color:var(--card);font-size:.85rem;
 .pbar-wrap{background:var(--crmd);border-radius:999px;height:8px;margin:4px 0 10px;overflow:hidden;}
 .pbar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--car),var(--card));width:0%;transition:width 1s cubic-bezier(.22,1,.36,1);}
 .plbl{font-size:.8rem;color:var(--esps);margin-bottom:4px;}
-.code-box{margin:16px 0 8px;background:var(--crm);border:1.5px dashed var(--car);border-radius:14px;padding:14px;}
+.code-box{margin:14px 0 8px;background:var(--crm);border:1.5px dashed var(--car);border-radius:14px;padding:14px;}
 .code-box .code{font-family:monospace;font-weight:700;font-size:1.2rem;letter-spacing:.05em;}
 .code-box .hint{font-size:.72rem;color:var(--esps);margin-top:4px;}
 button.copy{margin-top:8px;border:none;background:var(--car);color:var(--ppr);
   font-weight:600;font-size:.82rem;padding:9px 16px;border-radius:999px;cursor:pointer;font-family:'Inter',sans-serif;}
 .contact{margin-top:18px;padding-top:14px;border-top:1px solid var(--crmd);display:flex;flex-direction:column;gap:8px;}
 .contact a{font-size:.82rem;color:var(--esps);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
-.tag{font-size:.75rem;color:var(--esps);margin:2px 0 0;}
-.tag strong{color:var(--esp);}
+.nombre-tag{font-size:.8rem;color:var(--card);font-weight:600;margin:2px 0 8px;}
 </style>
 </head>
 <body>
@@ -55,12 +59,22 @@ button.copy{margin-top:8px;border:none;background:var(--car);color:var(--ppr);
   <button class="primary" id="enterBtn">Ver mi tarjeta</button>
 </main>
 <script>
-const C={name:"Muley Coffee",sellosPremio:10,ntfy:"cafe-retiro-luis-7gx2k9",
-  bin:"6a35da17f5f4af5e2912180b",key:"$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW"};
+const C={
+  name:"Muley Coffee",sellosPremio:10,
+  bin:"6a35da17f5f4af5e2912180b",
+  key:"$2a$10$yFR5K98Hokx1AAmsjdgJjef5HeSUGsHbMRbzDDOa0f0qa2yKHawtW"
+};
 const API="https://api.jsonbin.io/v3/b/"+C.bin;
 const app=document.getElementById('app');
 
-function normPhone(r){return r.replace(/\s+/g,'').replace(/[^\d+]/g,'');}
+// ── Normalización ───────────────────────────────────────────────────────────
+function norm(raw){
+  let d=(raw||'').replace(/\s+/g,'').replace(/[^\d]/g,'');
+  if(d.startsWith('56'))d=d.slice(2);
+  if(d.startsWith('0'))d=d.slice(1);
+  return d;
+}
+function displayPhone(key){return'+56 '+key.slice(0,1)+' '+key.slice(1,5)+' '+key.slice(5);}
 
 function contactHTML(){return`<div class="contact">
   <a href="https://instagram.com/muley_coffee" target="_blank">📷 @muley_coffee</a>
@@ -74,23 +88,27 @@ function stampsHTML(filled,total){
   return h+'</div>';
 }
 
-function genCode(total){
-  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let s='';for(let i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];
-  return`FIEL-${total}-${s}`;
+function waMessage(phone,stamps,nombre){
+  const saludo=nombre?`¡Hola ${nombre}!`:'¡Hola!';
+  const rem=C.sellosPremio-stamps;
+  const texto=stamps===0
+    ?`${saludo} 🎉 Bienvenido/a a *Muley Coffee*. Tu tarjeta de fidelidad ya está activa. ¡Cada café te acerca a uno gratis! ☕`
+    :rem===0
+      ?`${saludo} ☕ ¡Tu tarjeta de *Muley Coffee* está completa! Ya tienes un café gratis esperándote.`
+      :`${saludo} ☕ Tu tarjeta de *Muley Coffee*: ${stamps} de ${C.sellosPremio} sellos. ¡Solo faltan ${rem} para ganar un café gratis!`;
+  return`https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
 }
 
 async function getRecord(){
   const r=await fetch(API+"/latest",{headers:{'X-Master-Key':C.key,'X-Bin-Meta':'false'}});
   if(!r.ok)throw new Error('read');
   const d=await r.json();
-  if(!d.customers)d.customers={};
+  if(typeof d.count!=='number')d.count=0;
   if(!d.winners)d.winners={};
   if(!d.visits)d.visits=[];
-  if(typeof d.count!=='number')d.count=0;
+  if(!d.customers)d.customers={};
   return d;
 }
-
 async function putRecord(d){
   const r=await fetch(API,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':C.key},body:JSON.stringify(d)});
   if(!r.ok)throw new Error('write');
@@ -101,15 +119,21 @@ function renderCard(phone,cust){
   const pct=Math.round((stamps/C.sellosPremio)*100);
   const rem=C.sellosPremio-stamps;
   const pending=(cust.prizes||[]).find(p=>!p.redeemed);
+  const nombre=cust.name||'';
+  const isNew=!cust.lastVisit;
+
   app.innerHTML=`
     <p class="eyebrow">${C.name}</p>
     <h1>Mi tarjeta ☕</h1>
-    <p class="tag">Teléfono: <strong>${phone}</strong></p>
+    ${nombre?`<p class="nombre-tag">Hola, ${nombre} 👋</p>`:`<p style="font-size:.78rem;color:var(--esps);margin-bottom:6px;">${displayPhone(phone)}</p>`}
     ${stampsHTML(stamps,C.sellosPremio)}
     <p class="plbl">${stamps} de ${C.sellosPremio} cafés</p>
     <div class="pbar-wrap"><div class="pbar" id="pb"></div></div>
-    ${stamps===0?`<p class="sub">¡Empieza hoy! Cada café que compres suma un sello 🎉</p>`:
-      rem>0?`<p class="sub">Faltan <strong style="color:var(--card)">${rem}</strong> café${rem>1?'s':''} para ganar uno gratis</p>`:``}
+    ${stamps===0
+      ?`<p class="sub">¡Empieza hoy! Cada café que compres suma un sello 🎉</p>`
+      :rem>0
+        ?`<p class="sub">Faltan <strong style="color:var(--card)">${rem}</strong> café${rem>1?'s':''} para ganar uno gratis</p>`
+        :''}
     ${pending?`<div class="code-box">
       <div class="code">${pending.code}</div>
       <div class="hint">¡Tienes un café gratis pendiente de canje!</div>
@@ -117,14 +141,25 @@ function renderCard(phone,cust){
     </div>
     <p class="sub">Muéstralo en caja para canjearlo.</p>`:''}
     ${(cust.totalPrizesWon||0)>0?`<p style="font-size:.75rem;color:var(--esps);margin-top:8px;">Premios ganados: ${cust.totalPrizesWon}</p>`:''}
+    <button class="wabtn" id="waBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Recibir mensaje por WhatsApp
+    </button>
     ${contactHTML()}
     <button class="ghost" id="backBtn">← Cambiar número</button>`;
+
   setTimeout(()=>{const b=document.getElementById('pb');if(b)b.style.width=pct+'%';},100);
+
   document.getElementById('backBtn').addEventListener('click',renderLogin);
+
   const cp=document.getElementById('cpBtn');
   if(cp)cp.addEventListener('click',async()=>{
     try{await navigator.clipboard.writeText(pending.code);
       cp.textContent='¡Copiado!';setTimeout(()=>{cp.textContent='Copiar código';},1800);}catch(e){}
+  });
+
+  document.getElementById('waBtn').addEventListener('click',()=>{
+    window.open(waMessage(phone,stamps,nombre),'_blank');
   });
 }
 
@@ -141,13 +176,13 @@ function renderLogin(){
 }
 
 async function handleEnter(){
-  const phone=normPhone((document.getElementById('ph').value||'').trim());
+  const phone=norm((document.getElementById('ph').value||'').trim());
   if(phone.length<8){document.getElementById('ph').style.borderColor='var(--card)';return;}
   app.innerHTML=`<p class="eyebrow">${C.name}</p><h1>Cargando…</h1>`;
   try{
     const rec=await getRecord();
     if(!rec.customers[phone]){
-      rec.customers[phone]={phone,stamps:0,totalPrizesWon:0,prizes:[],createdAt:Date.now()};
+      rec.customers[phone]={phone,name:'',stamps:0,totalPrizesWon:0,prizes:[],createdAt:Date.now()};
       await putRecord(rec);
     }
     renderCard(phone,rec.customers[phone]);
